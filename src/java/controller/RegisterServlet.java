@@ -26,6 +26,7 @@ public class RegisterServlet extends HttpServlet {
         String cp = request.getParameter("confirmPassword");
         String email = request.getParameter("email");
         String fullName = request.getParameter("fullName");
+        String phoneNumber = request.getParameter("phoneNumber");
 
         if (!p.equals(cp)) {
             request.setAttribute("error", "Passwords do not match!");
@@ -40,7 +41,7 @@ public class RegisterServlet extends HttpServlet {
             request.setAttribute("error", "Username already exists!");
             request.getRequestDispatcher("views/auth/register.jsp").forward(request, response);
         } else {
-            db.register(u, p, email, fullName);
+            db.register(u, p, email, fullName, phoneNumber);
             response.sendRedirect("login");
         }
     }

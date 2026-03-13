@@ -2,11 +2,11 @@
     <%@taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
         <%@taglib prefix="fmt" uri="http://java.sun.com/jsp/jstl/fmt" %>
             <!DOCTYPE html>
-            <html>
+            <html lang="vi">
 
             <head>
-                <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
-                <title>Select Seats - BusTicket</title>
+                <meta charset="UTF-8">
+                <title>Chọn Ghế - Vivu</title>
                 <link rel="stylesheet" href="assets/css/style.css">
                 <style>
                     .booking-container {
@@ -34,25 +34,49 @@
                         top: 100px;
                     }
 
-                    /* Seat Map Styling */
+                    /* Dual Map Layout */
+                    .maps-wrapper {
+                        display: flex;
+                        gap: 40px;
+                        justify-content: center;
+                    }
+
+                    .map-section {
+                        flex: 1;
+                        background: #f8fafc;
+                        padding: 20px;
+                        border-radius: 16px;
+                        border: 1px solid #e2e8f0;
+                    }
+
+                    .map-title {
+                        text-align: center;
+                        font-weight: 700;
+                        margin-bottom: 20px;
+                        color: var(--primary-color);
+                        font-size: 18px;
+                    }
+
+                    /* Seat Grid styling */
                     .deck-label {
                         font-weight: 700;
                         margin-bottom: 20px;
                         text-align: center;
                         color: var(--text-secondary);
+                        font-size: 14px;
                     }
 
                     .seat-grid {
                         display: grid;
                         grid-template-columns: repeat(3, 1fr);
-                        gap: 16px;
-                        margin-bottom: 40px;
+                        gap: 12px;
+                        margin-bottom: 30px;
                     }
 
                     .seat {
-                        height: 60px;
+                        height: 50px;
                         border: 2px solid #d2d2d7;
-                        border-radius: 12px;
+                        border-radius: 10px;
                         display: flex;
                         justify-content: center;
                         align-items: center;
@@ -60,12 +84,12 @@
                         font-weight: 600;
                         font-size: 14px;
                         transition: all 0.2s;
-                        position: relative;
+                        background: white;
                     }
 
                     .seat.available:hover {
                         border-color: var(--primary-color);
-                        background: #f0f8ff;
+                        background: #fffcfb;
                     }
 
                     .seat.selected {
@@ -75,9 +99,9 @@
                     }
 
                     .seat.booked {
-                        background: #eee;
-                        color: #bbb;
-                        border-color: #eee;
+                        background: #e2e8f0;
+                        color: #94a3b8;
+                        border-color: #e2e8f0;
                         cursor: not-allowed;
                     }
 
@@ -86,7 +110,9 @@
                         display: flex;
                         gap: 20px;
                         justify-content: center;
-                        margin-top: 20px;
+                        margin-top: 30px;
+                        padding-top: 20px;
+                        border-top: 1px solid #e2e8f0;
                     }
 
                     .legend-item {
@@ -94,6 +120,8 @@
                         align-items: center;
                         gap: 8px;
                         font-size: 14px;
+                        color: var(--text-secondary);
+                        font-weight: 500;
                     }
 
                     .legend-box {
@@ -108,115 +136,184 @@
                 <jsp:include page="../common/header.jsp"></jsp:include>
 
                 <div class="container" style="padding-top: 20px; min-height: 80vh;">
-                    <a href="search?origin=${trip.route.origin}&destination=${trip.route.destination}&date=${trip.departureTime}"
-                        style="color: var(--text-secondary); font-size: 14px;">&larr; Back to Results</a>
+                    <a href="search?origin=${trip.route.origin}&destination=${trip.route.destination}&date=${trip.departureTime}&tripType=${not empty returnTrip ? 'roundTrip' : 'oneWay'}&ticketCount=${ticketCount}"
+                        style="color: var(--text-secondary); font-size: 14px; text-decoration: none; font-weight: 500;">&larr;
+                        Quay lại chọn chuyến</a>
 
                     <c:if test="${not empty param.error}">
                         <div
-                            style="background: #fce8e6; color: #d93025; padding: 12px; border-radius: 8px; margin-top: 16px;">
-                            <strong>Error:</strong>
+                            style="background: #fce8e6; color: #d93025; padding: 15px 20px; border-radius: 12px; margin-top: 20px; font-weight: 500;">
+                            <i class="fas fa-exclamation-circle" style="margin-right: 8px;"></i>
                             <c:choose>
-                                <c:when test="${param.error == 'BookingFailed'}">
-                                    Something went wrong with your booking. Please try again.
+                                <c:when test="${param.error == 'BookingFailed'}">Lỗi hệ thống. Vui lòng thử lại.
                                 </c:when>
-                                <c:when test="${param.error == 'SeatsUnavailable'}">
-                                    Some of the selected seats are already taken. Please choose different seats.
-                                </c:when>
-                                <c:otherwise>
-                                    ${param.error}
-                                </c:otherwise>
+                                <c:when test="${param.error == 'SeatsUnavailable'}">Ghế bạn chọn vừa có người đặt. Vui
+                                    lòng chọn ghế khác.</c:when>
+                                <c:otherwise>${param.error}</c:otherwise>
                             </c:choose>
                         </div>
                     </c:if>
 
-                    <p style="margin-top: 10px; color: var(--text-secondary);">
-                        <i class="fas fa-info-circle"></i> Click on the white seats (Available) to select them. Grey
-                        seats are already booked.
+                    <p style="margin-top: 20px; color: var(--text-secondary); font-size: 15px;">
+                        <i class="fas fa-info-circle" style="color: var(--primary-color);"></i> Nhấp vào các ghế màu
+                        trắng để chọn. Số lượng vé cần chọn: <strong>${ticketCount} ghế</strong>
+                        <c:if test="${not empty returnTrip}">mỗi chiều.</c:if>
                     </p>
 
                     <div class="booking-container">
-                        <!-- Seat Map -->
+                        <!-- Seat Map Area -->
                         <div class="seat-map-container">
-                            <h3 style="margin-bottom: 30px;">Select Seats</h3>
-                            <div style="display: flex; justify-content: space-around;">
-                                <!-- Lower Deck -->
-                                <div style="width: 200px;">
-                                    <div class="deck-label">Lower Deck</div>
-                                    <div class="seat-grid">
-                                        <!-- Simple loop for seats 1-15 (Lower) -->
-                                        <c:forEach begin="1" end="15" var="i">
-                                            <c:set var="seatNum" value="A${i}" />
-                                            <div class="seat ${bookedSeats.contains(seatNum) ? 'booked' : 'available'}"
-                                                data-seat="${seatNum}" onclick="toggleSeat(this)">${seatNum}</div>
-                                        </c:forEach>
+                            <h3 style="margin-bottom: 30px; font-size: 24px;">Sơ đồ ghế</h3>
+
+                            <div class="maps-wrapper">
+                                <!-- Outbound Map -->
+                                <div class="map-section">
+                                    <div class="map-title">CHUYẾN ĐI</div>
+                                    <div style="display: flex; gap: 20px;">
+                                        <div style="flex: 1;">
+                                            <div class="deck-label">Tầng dưới</div>
+                                            <div class="seat-grid">
+                                                <c:forEach begin="1" end="15" var="i">
+                                                    <c:set var="seatNum" value="A${i}" />
+                                                    <div class="seat ${bookedSeats.contains(seatNum) ? 'booked' : 'available'}"
+                                                        onclick="toggleSeat(this, 'outbound', '${seatNum}')">${seatNum}
+                                                    </div>
+                                                </c:forEach>
+                                            </div>
+                                        </div>
+                                        <div style="flex: 1;">
+                                            <div class="deck-label">Tầng trên</div>
+                                            <div class="seat-grid">
+                                                <c:forEach begin="1" end="15" var="i">
+                                                    <c:set var="seatNum" value="B${i}" />
+                                                    <div class="seat ${bookedSeats.contains(seatNum) ? 'booked' : 'available'}"
+                                                        onclick="toggleSeat(this, 'outbound', '${seatNum}')">${seatNum}
+                                                    </div>
+                                                </c:forEach>
+                                            </div>
+                                        </div>
                                     </div>
                                 </div>
 
-                                <!-- Upper Deck -->
-                                <div style="width: 200px;">
-                                    <div class="deck-label">Upper Deck</div>
-                                    <div class="seat-grid">
-                                        <c:forEach begin="1" end="15" var="i">
-                                            <c:set var="seatNum" value="B${i}" />
-                                            <div class="seat ${bookedSeats.contains(seatNum) ? 'booked' : 'available'}"
-                                                data-seat="${seatNum}" onclick="toggleSeat(this)">${seatNum}</div>
-                                        </c:forEach>
+                                <!-- Return Map -->
+                                <c:if test="${not empty returnTrip}">
+                                    <div class="map-section">
+                                        <div class="map-title">CHUYẾN VỀ</div>
+                                        <div style="display: flex; gap: 20px;">
+                                            <div style="flex: 1;">
+                                                <div class="deck-label">Tầng dưới</div>
+                                                <div class="seat-grid">
+                                                    <c:forEach begin="1" end="15" var="i">
+                                                        <c:set var="seatNum" value="A${i}" />
+                                                        <div class="seat ${returnBookedSeats.contains(seatNum) ? 'booked' : 'available'}"
+                                                            onclick="toggleSeat(this, 'return', '${seatNum}')">
+                                                            ${seatNum}</div>
+                                                    </c:forEach>
+                                                </div>
+                                            </div>
+                                            <div style="flex: 1;">
+                                                <div class="deck-label">Tầng trên</div>
+                                                <div class="seat-grid">
+                                                    <c:forEach begin="1" end="15" var="i">
+                                                        <c:set var="seatNum" value="B${i}" />
+                                                        <div class="seat ${returnBookedSeats.contains(seatNum) ? 'booked' : 'available'}"
+                                                            onclick="toggleSeat(this, 'return', '${seatNum}')">
+                                                            ${seatNum}</div>
+                                                    </c:forEach>
+                                                </div>
+                                            </div>
+                                        </div>
                                     </div>
-                                </div>
+                                </c:if>
                             </div>
 
                             <div class="legend">
                                 <div class="legend-item">
-                                    <div class="legend-box" style="border: 2px solid #d2d2d7;"></div> Available
+                                    <div class="legend-box" style="border: 2px solid #d2d2d7;"></div> Còn trống
                                 </div>
                                 <div class="legend-item">
-                                    <div class="legend-box" style="background: var(--primary-color);"></div> Selected
+                                    <div class="legend-box" style="background: var(--primary-color);"></div> Đang chọn
                                 </div>
                                 <div class="legend-item">
-                                    <div class="legend-box" style="background: #eee;"></div> Booked
+                                    <div class="legend-box" style="background: #e2e8f0;"></div> Đã đặt
                                 </div>
                             </div>
                         </div>
 
                         <!-- Summary Sidebar -->
                         <div class="summary-card">
-                            <h3 style="margin-bottom: 20px;">Trip Summary</h3>
-                            <div style="margin-bottom: 20px;">
+                            <h3 style="margin-bottom: 24px; font-size: 20px;">Thông tin đặt vé</h3>
+
+                            <!-- Outbound Details -->
+                            <div style="margin-bottom: 20px; padding-bottom: 20px; border-bottom: 1px dashed #e2e8f0;">
+                                <div style="font-weight: 700; color: var(--primary-color); margin-bottom: 8px;">CHUYẾN
+                                    ĐI</div>
                                 <div style="font-weight: 600;">${trip.route.origin} &rarr; ${trip.route.destination}
                                 </div>
-                                <div style="color: var(--text-secondary); font-size: 14px;">
-                                    <fmt:formatDate value="${trip.departureTime}" pattern="EEE, dd MMM yyyy - HH:mm" />
+                                <div style="color: var(--text-secondary); font-size: 14px; margin-top: 4px;">
+                                    <fmt:formatDate value="${trip.departureTime}" pattern="HH:mm - dd/MM/yyyy" />
                                 </div>
-                                <div style="color: var(--text-secondary); font-size: 14px;">
-                                    ${trip.bus.busType} (Slot ${trip.bus.busNumber})
+                                <div
+                                    style="display: flex; justify-content: space-between; margin-top: 12px; font-size: 14px;">
+                                    <span style="color: var(--text-secondary);">Ghế:</span>
+                                    <span id="display-outbound-seats" style="font-weight: 600;">-</span>
                                 </div>
                             </div>
 
-                            <div style="border-top: 1px solid #eee; padding-top: 20px; margin-top: 20px;">
-                                <div style="display: flex; justify-content: space-between; margin-bottom: 10px;">
-                                    <span>Seat(s):</span>
-                                    <span id="display-seats" style="font-weight: 600;">-</span>
-                                </div>
-                                <div style="display: flex; justify-content: space-between; margin-bottom: 20px;">
-                                    <span>Price x <span id="seat-count">0</span>:</span>
-                                    <span>
-                                        <fmt:formatNumber value="${trip.price}" type="number" maxFractionDigits="0" />
-                                        VNĐ
-                                    </span>
-                                </div>
+                            <!-- Return Details -->
+                            <c:if test="${not empty returnTrip}">
                                 <div
-                                    style="display: flex; justify-content: space-between; font-size: 20px; font-weight: 700; color: var(--primary-color);">
-                                    <span>Total:</span>
-                                    <span id="display-total">0 VNĐ</span>
+                                    style="margin-bottom: 20px; padding-bottom: 20px; border-bottom: 1px dashed #e2e8f0;">
+                                    <div style="font-weight: 700; color: var(--primary-color); margin-bottom: 8px;">
+                                        CHUYẾN VỀ</div>
+                                    <div style="font-weight: 600;">${returnTrip.route.origin} &rarr;
+                                        ${returnTrip.route.destination}</div>
+                                    <div style="color: var(--text-secondary); font-size: 14px; margin-top: 4px;">
+                                        <fmt:formatDate value="${returnTrip.departureTime}"
+                                            pattern="HH:mm - dd/MM/yyyy" />
+                                    </div>
+                                    <div
+                                        style="display: flex; justify-content: space-between; margin-top: 12px; font-size: 14px;">
+                                        <span style="color: var(--text-secondary);">Ghế:</span>
+                                        <span id="display-return-seats" style="font-weight: 600;">-</span>
+                                    </div>
+                                </div>
+                            </c:if>
+
+                            <div style="margin-top: 20px;">
+                                <div
+                                    style="display: flex; justify-content: space-between; font-size: 22px; font-weight: 700; color: var(--primary-color);">
+                                    <span>Tổng tiền:</span>
+                                    <span id="display-total">0 đ</span>
                                 </div>
                             </div>
 
                             <form action="booking" method="POST" id="bookingForm" style="margin-top: 30px;">
                                 <input type="hidden" name="tripID" value="${trip.tripID}">
-                                <input type="hidden" name="selectedSeats" id="input-seats">
+                                <input type="hidden" name="selectedSeats" id="input-outbound-seats">
+                                <c:if test="${not empty returnTrip}">
+                                    <input type="hidden" name="returnTripID" value="${returnTrip.tripID}">
+                                    <input type="hidden" name="returnSeats" id="input-return-seats">
+                                </c:if>
                                 <input type="hidden" name="totalPrice" id="input-total">
-                                <button type="submit" class="btn btn-primary" style="width: 100%;" disabled
-                                    id="btn-checkout">Continue</button>
+
+                                <c:if test="${empty sessionScope.user}">
+                                    <div style="margin-top: 20px; text-align: left; background: #f8fafc; padding: 16px; border-radius: 12px; border: 1px solid #e2e8f0;">
+                                        <div style="font-weight: 600; color: #333; margin-bottom: 12px; font-size: 14px;">Thông tin liên hệ (Mua vé không cần tài khoản)</div>
+                                        <input type="text" name="guestName" placeholder="Họ và tên" class="form-control" style="margin-bottom: 10px; padding: 10px; border: 1px solid #d2d2d7; border-radius: 8px; width: 100%; box-sizing: border-box;" required>
+                                        <input type="text" name="guestPhone" placeholder="Số điện thoại" class="form-control" style="margin-bottom: 10px; padding: 10px; border: 1px solid #d2d2d7; border-radius: 8px; width: 100%; box-sizing: border-box;" required>
+                                        <input type="email" name="guestEmail" placeholder="Email" class="form-control" style="margin-bottom: 10px; padding: 10px; border: 1px solid #d2d2d7; border-radius: 8px; width: 100%; box-sizing: border-box;" required>
+                                    </div>
+                                </c:if>
+
+                                <button type="submit" class="btn btn-primary"
+                                    style="width: 100%; padding: 14px; font-size: 16px; border-radius: 12px; margin-top: 20px;" disabled
+                                    id="btn-checkout">Tiếp tục thanh toán</button>
+                                <div id="validation-msg"
+                                    style="color: #d93025; font-size: 13px; text-align: center; margin-top: 12px; font-weight: 500;">
+                                    Vui lòng chọn đủ ${ticketCount} ghế <c:if test="${not empty returnTrip}">cho mỗi
+                                        chuyến</c:if>.
+                                </div>
                             </form>
                         </div>
                     </div>
@@ -224,48 +321,60 @@
 
                 <jsp:include page="../common/footer.jsp"></jsp:include>
                 <script>
-                    let selectedSeats = [];
-                    const seatPrice = ${ trip.price };
+                    const requiredCount = ${ ticketCount };
+                    let outSeats = [];
+                    let retSeats = [];
+                    const outPrice = ${ trip.price };
+                    const retPrice = ${ not empty returnTrip ?returnTrip.price: 0};
+                    const hasReturn = ${ not empty returnTrip };
 
-                    function toggleSeat(element) {
+                    function toggleSeat(element, type, seatNum) {
                         if (element.classList.contains('booked')) return;
 
-                        const seatNum = element.getAttribute('data-seat');
+                        let arr = type === 'outbound' ? outSeats : retSeats;
 
                         if (element.classList.contains('selected')) {
                             element.classList.remove('selected');
-                            selectedSeats = selectedSeats.filter(s => s !== seatNum);
+                            const idx = arr.indexOf(seatNum);
+                            if (idx > -1) arr.splice(idx, 1);
                         } else {
-                            if (selectedSeats.length >= 5) {
-                                alert("You can only select up to 5 seats.");
+                            if (arr.length >= requiredCount) {
+                                alert('Bạn chỉ có thể chọn tối đa ' + requiredCount + ' ghế.');
                                 return;
                             }
                             element.classList.add('selected');
-                            selectedSeats.push(seatNum);
+                            arr.push(seatNum);
                         }
                         updateSummary();
                     }
 
                     function updateSummary() {
-                        const count = selectedSeats.length;
-                        const total = count * seatPrice;
+                        document.getElementById('display-outbound-seats').innerText = outSeats.length > 0 ? outSeats.join(', ') : '-';
+                        document.getElementById('input-outbound-seats').value = outSeats.join(',');
 
-                        document.getElementById('display-seats').innerText = selectedSeats.length > 0 ? selectedSeats.join(', ') : '-';
-                        document.getElementById('seat-count').innerText = count;
-                        document.getElementById('display-total').innerText = total.toLocaleString('vi-VN') + ' VNĐ';
+                        if (hasReturn) {
+                            document.getElementById('display-return-seats').innerText = retSeats.length > 0 ? retSeats.join(', ') : '-';
+                            document.getElementById('input-return-seats').value = retSeats.join(',');
+                        }
 
-                        document.getElementById('input-seats').value = selectedSeats.join(',');
+                        const total = (outSeats.length * outPrice) + (retSeats.length * retPrice);
+                        document.getElementById('display-total').innerText = total.toLocaleString('vi-VN') + ' đ';
                         document.getElementById('input-total').value = total;
 
+                        const isValid = hasReturn ? (outSeats.length === requiredCount && retSeats.length === requiredCount) : (outSeats.length === requiredCount);
+
                         const btn = document.getElementById('btn-checkout');
-                        if (count > 0) {
+                        const msg = document.getElementById('validation-msg');
+
+                        if (isValid) {
                             btn.removeAttribute('disabled');
+                            msg.style.display = 'none';
                         } else {
-                            btn.setAttribute('disabled', 'disabled');
+                            btn.setAttribute('disabled', 'true');
+                            msg.style.display = 'block';
                         }
                     }
                 </script>
-                <script src="assets/js/main.js"></script>
             </body>
 
             </html>

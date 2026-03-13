@@ -12,10 +12,9 @@ import model.User;
 
 public class GoogleUtils {
 
-    // START CONSTANTS - USER MUST UPDATE THESE
     public static final String GOOGLE_CLIENT_ID = "YOUR_GOOGLE_CLIENT_ID";
     public static final String GOOGLE_CLIENT_SECRET = "YOUR_GOOGLE_CLIENT_SECRET";
-    public static final String GOOGLE_REDIRECT_URI = "http://localhost:8080/BusTicketDev/login-google-callback";
+    public static final String GOOGLE_REDIRECT_URI = "YOUR_GOOGLE_REDIRECT_URI";
     // END CONSTANTS
 
     public static final String GOOGLE_LINK_GET_TOKEN = "https://oauth2.googleapis.com/token";

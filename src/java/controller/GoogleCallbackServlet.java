@@ -51,14 +51,20 @@ public class GoogleCallbackServlet extends HttpServlet {
 
         if (loggedInUser != null) {
             HttpSession session = request.getSession();
-            session.setAttribute("user", loggedInUser);
-
-            String redirect = (String) session.getAttribute("redirectAfterLogin");
-            if (redirect != null) {
-                session.removeAttribute("redirectAfterLogin");
-                response.sendRedirect(redirect);
+            
+            if (loggedInUser.getPhoneNumber() == null || loggedInUser.getPhoneNumber().trim().isEmpty()) {
+                session.setAttribute("pendingUser", loggedInUser);
+                response.sendRedirect("update-phone");
             } else {
-                response.sendRedirect("home");
+                session.setAttribute("user", loggedInUser);
+
+                String redirect = (String) session.getAttribute("redirectAfterLogin");
+                if (redirect != null) {
+                    session.removeAttribute("redirectAfterLogin");
+                    response.sendRedirect(redirect);
+                } else {
+                    response.sendRedirect("home");
+                }
             }
         } else {
             response.sendRedirect("login?error=DatabaseError");

@@ -153,79 +153,157 @@
                 transform: scale(1.1);
             }
 
-            /* Search Box Layout - Floating Bottom */
+            /* Search Box Layout - Vexere Style */
             .search-container {
-                margin-top: -80px;
-                /* More overlap */
+                margin-top: -60px;
                 position: relative;
                 z-index: 20;
                 padding: 0 24px;
-                margin-bottom: 40px;
+                margin-bottom: 80px;
             }
 
             .search-box {
                 background: white;
-                border-radius: 24px;
-                padding: 32px;
-                box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.15);
-                display: grid;
-                grid-template-columns: 1fr 1fr 1fr auto;
-                gap: 24px;
-                max-width: 1100px;
+                border-radius: 16px;
+                padding: 24px 32px 40px;
+                box-shadow: 0 5px 20px rgba(0, 0, 0, 0.08);
+                max-width: 1000px;
                 margin: 0 auto;
-                border: 1px solid var(--border-color);
-                align-items: end;
+                border: 2px solid #c7d2fe; /* Light blue border */
+                position: relative;
             }
 
-            .form-group-hero label {
-                color: var(--text-secondary);
-                font-size: 13px;
-                font-weight: 600;
-                text-transform: uppercase;
-                display: block;
-                margin-bottom: 8px;
-                letter-spacing: 0.5px;
+            .search-top-row {
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+                margin-bottom: 20px;
+                border-bottom: 1px solid #f1f5f9;
+                padding-bottom: 16px;
             }
 
-            .form-control-hero {
-                background: #f1f5f9;
-                border: none;
-                padding: 16px;
+            .trip-type-radios {
+                display: flex;
+                gap: 24px;
+            }
+
+            .radio-label {
+                display: flex;
+                align-items: center;
+                gap: 8px;
+                cursor: pointer;
+                font-size: 15px;
+                font-weight: 500;
+                color: var(--text-primary);
+            }
+
+            .radio-label input[type="radio"] {
+                accent-color: var(--primary-color);
+                width: 18px;
+                height: 18px;
+            }
+
+            .guide-link {
+                color: var(--primary-color);
+                font-size: 14px;
+                font-weight: 500;
+            }
+
+            .search-inputs-row {
+                display: flex;
+                align-items: center;
+                gap: 12px;
+                border: 1px solid #e2e8f0;
                 border-radius: 12px;
-                width: 100%;
+                padding: 12px 16px;
+            }
+
+            .input-group {
+                flex: 1;
+                display: flex;
+                flex-direction: column;
+                position: relative;
+            }
+            .input-group:not(:last-child)::after {
+                content: '';
+                position: absolute;
+                right: -6px;
+                top: 10%;
+                height: 80%;
+                width: 1px;
+                background: #e2e8f0;
+            }
+            
+            .swap-btn-container {
+                 position: relative;
+                 width: 0;
+                 display: flex;
+                 justify-content: center;
+                 align-items: center;
+                 z-index: 2;
+            }
+
+            .swap-btn {
+                 background: white;
+                 border: 1px solid #e2e8f0;
+                 border-radius: 50%;
+                 width: 32px;
+                 height: 32px;
+                 display: flex;
+                 justify-content: center;
+                 align-items: center;
+                 color: var(--text-secondary);
+                 cursor: pointer;
+                 position: absolute;
+                 transition: all 0.2s;
+            }
+            .swap-btn:hover {
+                 background: #f1f5f9;
+                 color: var(--primary-color);
+            }
+
+            .input-group label {
+                font-size: 13px;
+                color: var(--text-secondary);
+                font-weight: 500;
+                margin-bottom: 4px;
+            }
+
+            .input-group input, .input-group select {
+                border: none;
+                background: transparent;
+                font-size: 16px;
                 font-weight: 600;
                 color: var(--text-primary);
-                font-size: 16px;
-                transition: all 0.2s;
-            }
-
-            .form-control-hero:focus {
-                background: white;
-                box-shadow: inset 0 0 0 2px var(--primary-color);
+                width: 100%;
                 outline: none;
+                cursor: pointer;
             }
 
-            .btn-search {
-                height: 54px;
-                padding: 0 40px;
-                font-size: 16px;
-                background: var(--primary-color);
-                border-radius: 12px;
+            .submit-wrapper {
+                position: absolute;
+                bottom: -24px;
+                left: 0;
+                right: 0;
+                display: flex;
+                justify-content: center;
+            }
+
+            .btn-search-new {
+                background: var(--primary-color); 
                 color: white;
                 border: none;
-                font-weight: 700;
+                padding: 14px 60px;
+                border-radius: 30px;
+                font-size: 16px;
+                font-weight: 600;
                 cursor: pointer;
+                box-shadow: 0 4px 10px rgba(79, 70, 229, 0.3);
                 transition: all 0.2s;
-                display: inline-flex;
-                align-items: center;
-                justify-content: center;
-                gap: 8px;
             }
-
-            .btn-search:hover {
+            .btn-search-new:hover {
                 background: var(--primary-dark);
                 transform: translateY(-2px);
-                box-shadow: 0 10px 15px -3px rgba(79, 70, 229, 0.3);
             }
 
             /* Choices.js & Flatpickr Customization */
@@ -311,97 +389,150 @@
 
         <!-- Search Section -->
         <div class="search-container" id="search-section">
-            <form action="search" method="GET" class="search-box">
-                <div class="form-group-hero">
-                    <label><i class="fas fa-map-marker-alt" style="margin-right: 6px; color: var(--primary-color);"></i>
-                        From</label>
-                    <select name="origin" class="form-control-hero" required>
-                        <option value="" disabled selected>Select Origin</option>
-                        <option value="Ha Noi">Ha Noi</option>
-                        <option value="Da Nang">Da Nang</option>
-                        <option value="Ho Chi Minh City">Ho Chi Minh City</option>
-                        <option value="Sa Pa">Sa Pa</option>
-                        <option value="Quang Ninh">Quang Ninh</option>
-                    </select>
+            <form action="search" method="GET" class="search-box fade-in">
+                <!-- Top Row Tabs -->
+                <div class="search-top-row">
+                    <div class="trip-type-radios">
+                        <label class="radio-label">
+                            <input type="radio" name="tripType" value="oneWay" checked onchange="toggleReturnDate(false)">
+                            Một chiều
+                        </label>
+                        <label class="radio-label">
+                            <input type="radio" name="tripType" value="roundTrip" onchange="toggleReturnDate(true)">
+                            Khứ hồi
+                        </label>
+                    </div>
+                    <a href="#" class="guide-link">Hướng dẫn mua vé</a>
                 </div>
-
-                <div class="form-group-hero">
-                    <label><i class="fas fa-location-arrow" style="margin-right: 6px; color: var(--accent-color);"></i>
-                        To</label>
-                    <select name="destination" class="form-control-hero" required>
-                        <option value="" disabled selected>Select Destination</option>
-                        <option value="Ha Noi">Ha Noi</option>
-                        <option value="Da Nang">Da Nang</option>
-                        <option value="Ho Chi Minh City">Ho Chi Minh City</option>
-                        <option value="Sa Pa">Sa Pa</option>
-                        <option value="Ninh Binh">Ninh Binh</option>
-                    </select>
+                
+                <!-- Inputs Row -->
+                <div class="search-inputs-row" id="searchFieldsGroup">
+                    <!-- Origin -->
+                    <div class="input-group">
+                        <label>Điểm đi</label>
+                        <input type="text" name="origin" list="locationsList" placeholder="Chọn điểm đi" required>
+                    </div>
+                    
+                    <!-- Swap Icon -->
+                    <div class="swap-btn-container">
+                        <button type="button" class="swap-btn" onclick="swapLocations()">
+                            <i class="fas fa-exchange-alt"></i>
+                        </button>
+                    </div>
+                    
+                    <!-- Destination -->
+                    <div class="input-group" style="padding-left: 16px;">
+                        <label>Điểm đến</label>
+                        <input type="text" name="destination" list="locationsList" placeholder="Chọn điểm đến" required>
+                    </div>
+                    
+                    <!-- Departure Date -->
+                    <div class="input-group">
+                        <label>Ngày đi</label>
+                        <input type="date" name="date" id="departureDate" required>
+                    </div>
+                    
+                    <!-- Return Date -->
+                    <div class="input-group" id="returnDateGroup" style="display: none;">
+                        <label>Ngày về</label>
+                        <input type="date" name="returnDate" id="returnDate" placeholder="Thêm ngày về">
+                    </div>
+                    
+                    <!-- Ticket Count -->
+                    <div class="input-group">
+                        <label>Số vé</label>
+                        <select name="ticketCount" class="ticket-select">
+                            <option value="1">1</option>
+                            <option value="2">2</option>
+                            <option value="3">3</option>
+                            <option value="4">4</option>
+                            <option value="5">5</option>
+                        </select>
+                    </div>
                 </div>
-
-                <div class="form-group-hero">
-                    <label><i class="far fa-calendar-alt" style="margin-right: 6px; color: var(--warning);"></i>
-                        Date</label>
-                    <input type="date" name="date" class="form-control-hero" required>
+                
+                <div class="submit-wrapper">
+                    <button type="submit" class="btn-search-new">Tìm chuyến xe</button>
                 </div>
-
-                <button type="submit" class="btn-search">
-                    Search <i class="fas fa-arrow-right"></i>
-                </button>
             </form>
+
+            <datalist id="locationsList">
+                <option value="Hà Nội">
+                <option value="Hồ Chí Minh">
+                <option value="Đà Nẵng">
+                <option value="Hải Phòng">
+                <option value="Cần Thơ">
+                <option value="Đà Lạt">
+                <option value="Nha Trang">
+                <option value="Vũng Tàu">
+                <option value="Quy Nhơn">
+                <option value="Phú Quốc">
+                <option value="Huế">
+                <option value="Hạ Long">
+            </datalist>
         </div>
 
         <!-- Why Choose Us Section -->
-        <div style="background-color: #f8f9fa; padding: 60px 0; margin-top: 40px;">
+        <div style="background-color: #f8f9fa; padding: 60px 0;">
             <div class="container" style="max-width: 1200px; margin: 0 auto; padding: 0 24px;">
                 <div style="text-align: center; margin-bottom: 40px;">
-                    <h2 style="font-size: 28px; font-weight: 700; margin-bottom: 8px; color: var(--text-primary);">Why
-                        Choose Vivu?</h2>
-                    <p style="color: var(--text-secondary);">We provide the best experience for your journey</p>
+                    <h2 style="font-size: 28px; font-weight: 700; margin-bottom: 8px; color: var(--text-primary);">Tại sao chọn Vivu?</h2>
+                    <p style="color: var(--text-secondary);">Chúng tôi mang đến trải nghiệm tốt nhất cho hành trình của bạn</p>
                 </div>
                 <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 40px;">
                     <div style="text-align: center; padding: 20px;">
-                        <div
-                            style="width: 70px; height: 70px; background: rgba(59, 130, 246, 0.1); border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 20px;">
+                        <div style="width: 70px; height: 70px; background: rgba(59, 130, 246, 0.1); border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 20px;">
                             <i class="fas fa-shield-alt" style="font-size: 30px; color: var(--primary-color);"></i>
                         </div>
-                        <h3 style="font-size: 20px; font-weight: 600; margin-bottom: 12px; color: var(--text-primary);">
-                            Top Notch Security</h3>
-                        <p style="color: var(--text-secondary); line-height: 1.6;">Safety is our number one priority. We
-                            work with the most reliable bus operators.</p>
+                        <h3 style="font-size: 20px; font-weight: 600; margin-bottom: 12px; color: var(--text-primary);">An Toàn Tuyệt Đối</h3>
+                        <p style="color: var(--text-secondary); line-height: 1.6;">Sự an toàn của bạn là ưu tiên hàng đầu. Chúng tôi hợp tác với các nhà xe uy tín nhất toàn quốc.</p>
                     </div>
                     <div style="text-align: center; padding: 20px;">
-                        <div
-                            style="width: 70px; height: 70px; background: rgba(16, 185, 129, 0.1); border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 20px;">
+                        <div style="width: 70px; height: 70px; background: rgba(16, 185, 129, 0.1); border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 20px;">
                             <i class="fas fa-headset" style="font-size: 30px; color: #10b981;"></i>
                         </div>
-                        <h3 style="font-size: 20px; font-weight: 600; margin-bottom: 12px; color: var(--text-primary);">
-                            24/7 Support</h3>
-                        <p style="color: var(--text-secondary); line-height: 1.6;">Our customer service team is ready to
-                            assist you anytime, anywhere.</p>
+                        <h3 style="font-size: 20px; font-weight: 600; margin-bottom: 12px; color: var(--text-primary);">Hỗ Trợ 24/7</h3>
+                        <p style="color: var(--text-secondary); line-height: 1.6;">Đội ngũ chăm sóc khách hàng luôn sẵn sàng hỗ trợ bạn mọi lúc, mọi nơi, giải quyết mọi thắc mắc.</p>
                     </div>
                     <div style="text-align: center; padding: 20px;">
-                        <div
-                            style="width: 70px; height: 70px; background: rgba(245, 158, 11, 0.1); border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 20px;">
+                        <div style="width: 70px; height: 70px; background: rgba(245, 158, 11, 0.1); border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 20px;">
                             <i class="fas fa-tags" style="font-size: 30px; color: #f59e0b;"></i>
                         </div>
-                        <h3 style="font-size: 20px; font-weight: 600; margin-bottom: 12px; color: var(--text-primary);">
-                            Best Prices</h3>
-                        <p style="color: var(--text-secondary); line-height: 1.6;">Competitive rates and frequent
-                            promotions to help you save on every trip.</p>
+                        <h3 style="font-size: 20px; font-weight: 600; margin-bottom: 12px; color: var(--text-primary);">Giá Tốt Nhất</h3>
+                        <p style="color: var(--text-secondary); line-height: 1.6;">Mức giá cạnh tranh và các chương trình khuyến mãi thường xuyên giúp bạn tiết kiệm chi phí.</p>
                     </div>
                 </div>
             </div>
         </div>
 
-        <script src="https://cdn.jsdelivr.net/npm/choices.js/public/assets/scripts/choices.min.js"></script>
         <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
         <script>
+            // UI Toggle Logics
+            function toggleReturnDate(show) {
+                const returnGroup = document.getElementById('returnDateGroup');
+                const returnInput = document.getElementById('returnDate');
+                if (show) {
+                    returnGroup.style.display = 'flex';
+                    returnInput.setAttribute('required', 'true');
+                } else {
+                    returnGroup.style.display = 'none';
+                    returnInput.removeAttribute('required');
+                    returnInput.value = '';
+                }
+            }
+
+            function swapLocations() {
+                const origin = document.querySelector('input[name="origin"]');
+                const dest = document.querySelector('input[name="destination"]');
+                const temp = origin.value;
+                origin.value = dest.value;
+                dest.value = temp;
+            }
+
             document.addEventListener('DOMContentLoaded', function () {
-                const selects = document.querySelectorAll('.form-control-hero:not([type="date"])');
-                selects.forEach(select => {
-                    new Choices(select, { searchEnabled: false, itemSelectText: '', shouldSort: false, placeholder: true });
-                });
-                flatpickr("input[type=date]", { minDate: "today", dateFormat: "Y-m-d", altInput: true, altFormat: "F j, Y", disableMobile: "true" });
+                const today = new Date().toISOString().split('T')[0];
+                flatpickr("#departureDate", { minDate: "today", dateFormat: "Y-m-d", altInput: true, altFormat: "d/m/Y, l", disableMobile: "true" });
+                flatpickr("#returnDate", { minDate: "today", dateFormat: "Y-m-d", altInput: true, altFormat: "d/m/Y, l", disableMobile: "true" });
             });
         </script>
         <jsp:include page="../common/footer.jsp"></jsp:include>

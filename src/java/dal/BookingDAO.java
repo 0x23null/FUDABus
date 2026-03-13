@@ -119,4 +119,76 @@ public class BookingDAO extends DBContext {
         }
         return list;
     }
+
+    public Booking getBookingFullDetails(int bookingID) {
+        Booking b = null;
+        String sql = "SELECT b.*, "
+                + "t.tripID, t.departureTime, t.arrivalTime, t.price, "
+                + "r.routeID, r.origin, r.destination, r.duration, "
+                + "u.fullName, u.email, u.phoneNumber, "
+                + "bs.busID, bs.busNumber, bs.busType "
+                + "FROM Bookings b "
+                + "JOIN Trips t ON b.tripID = t.tripID "
+                + "JOIN Routes r ON t.routeID = r.routeID "
+                + "LEFT JOIN Users u ON b.userID = u.userID "
+                + "JOIN Buses bs ON t.busID = bs.busID "
+                + "WHERE b.bookingID = ?";
+        try {
+            PreparedStatement st = connection.prepareStatement(sql);
+            st.setInt(1, bookingID);
+            ResultSet rs = st.executeQuery();
+            if (rs.next()) {
+                b = new Booking();
+                b.setBookingID(rs.getInt("bookingID"));
+                b.setTicketCode(rs.getString("ticketCode"));
+                b.setTripID(rs.getInt("tripID"));
+                b.setUserID(rs.getInt("userID"));
+                b.setBookingDate(rs.getTimestamp("bookingDate"));
+                b.setTotalPrice(rs.getDouble("totalPrice"));
+                b.setStatus(rs.getString("status"));
+
+                Trip t = new Trip();
+                t.setTripID(rs.getInt("tripID"));
+                t.setDepartureTime(rs.getTimestamp("departureTime"));
+                t.setArrivalTime(rs.getTimestamp("arrivalTime"));
+                t.setPrice(rs.getDouble("price"));
+
+                Route r = new Route();
+                r.setRouteID(rs.getInt("routeID"));
+                r.setOrigin(rs.getString("origin"));
+                r.setDestination(rs.getString("destination"));
+                r.setDuration(rs.getInt("duration"));
+                t.setRoute(r);
+
+                Bus bus = new Bus();
+                bus.setBusID(rs.getInt("busID"));
+                bus.setBusNumber(rs.getString("busNumber"));
+                bus.setBusType(rs.getString("busType"));
+                t.setBus(bus);
+
+                b.setTrip(t);
+
+                model.User u = new model.User();
+                u.setUserID(rs.getInt("userID"));
+                u.setFullName(rs.getString("fullName"));
+                u.setEmail(rs.getString("email"));
+                u.setPhoneNumber(rs.getString("phoneNumber"));
+                b.setUser(u);
+
+                // Fetch seats
+                String sqlSeats = "SELECT seatNumber FROM BookingDetails WHERE bookingID = ?";
+                PreparedStatement stSeats = connection.prepareStatement(sqlSeats);
+                stSeats.setInt(1, bookingID);
+                ResultSet rsSeats = stSeats.executeQuery();
+                List<String> seats = new ArrayList<>();
+                while (rsSeats.next()) {
+                    seats.add(rsSeats.getString("seatNumber"));
+                }
+                b.setBookedSeats(seats);
+            }
+        } catch (SQLException e) {
+            System.out.println(e);
+        }
+        return b;
+    }
 }

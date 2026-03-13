@@ -22,6 +22,15 @@ public class Booking {
     // Navigation properties for easy access in JSP
     private Trip trip;
     private User user;
+    private java.util.List<String> bookedSeats;
+
+    public java.util.List<String> getBookedSeats() {
+        return bookedSeats;
+    }
+
+    public void setBookedSeats(java.util.List<String> bookedSeats) {
+        this.bookedSeats = bookedSeats;
+    }
 
     public Booking() {
     }

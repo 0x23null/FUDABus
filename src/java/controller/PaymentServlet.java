@@ -68,23 +68,12 @@ public class PaymentServlet extends HttpServlet {
             return;
         }
 
-        // Generate VietQR URL
-        // Bank: MB Bank (970422) - Account: 0000123456789 (Demo) - Template: compact
-        String bankID = "MB";
-        String accountNo = "0379274346"; // Demo Account
-        String accountName = "BUS TICKET SYSTEM";
-        String memo = "Pay Booking " + bookingID;
-
-        // Format:
-        // https://img.vietqr.io/image/<BANK>-<ACCOUNT>-<TEMPLATE>.png?amount=<AMOUNT>&addInfo=<CONTENT>&accountName=<NAME>
-        String qrURL = String.format(
-                "https://img.vietqr.io/image/%s-%s-compact.png?amount=%.0f&addInfo=%s&accountName=%s",
-                bankID, accountNo, amount, memo.replace(" ", "%20"), accountName.replace(" ", "%20"));
-
-        request.setAttribute("qrURL", qrURL);
+        dal.BookingDAO bookingDAO = new dal.BookingDAO();
+        model.Booking bookingStr = bookingDAO.getBookingFullDetails(bookingID);
+        
+        request.setAttribute("booking", bookingStr);
         request.setAttribute("amount", amount);
         request.setAttribute("bookingID", bookingID);
-        request.setAttribute("memo", memo);
 
         request.getRequestDispatcher("views/public/payment.jsp").forward(request, response);
     }

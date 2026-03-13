@@ -74,6 +74,7 @@
                         <input type="text" name="username" class="form-control" placeholder="Username" required>
                         <input type="text" name="fullName" class="form-control" placeholder="Full Name" required>
                         <input type="email" name="email" class="form-control" placeholder="Email Address" required>
+                        <input type="text" name="phoneNumber" class="form-control" placeholder="Phone Number" required>
                         <input type="password" name="password" class="form-control" placeholder="Password" required>
                         <input type="password" name="confirmPassword" class="form-control"
                             placeholder="Confirm Password" required>

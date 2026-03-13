@@ -49,14 +49,15 @@ public class UserDAO extends DBContext {
         return null;
     }
 
-    public void register(String username, String password, String email, String fullName) {
-        String sql = "INSERT INTO Users (username, password, email, fullName, role) VALUES (?, ?, ?, ?, 'Customer')";
+    public void register(String username, String password, String email, String fullName, String phoneNumber) {
+        String sql = "INSERT INTO Users (username, password, email, fullName, phoneNumber, role) VALUES (?, ?, ?, ?, ?, 'Customer')";
         try {
             PreparedStatement st = connection.prepareStatement(sql);
             st.setString(1, username);
             st.setString(2, password);
             st.setString(3, email);
             st.setString(4, fullName);
+            st.setString(5, phoneNumber);
             st.executeUpdate();
         } catch (SQLException e) {
             System.out.println(e);
@@ -99,6 +100,7 @@ public class UserDAO extends DBContext {
                 u.setPassword(rs.getString("password"));
                 u.setEmail(rs.getString("email"));
                 u.setFullName(rs.getString("fullName"));
+                u.setPhoneNumber(rs.getString("phoneNumber"));
                 u.setRole(rs.getString("role"));
                 return u;
             } else {
@@ -127,5 +129,17 @@ public class UserDAO extends DBContext {
             System.out.println(e);
         }
         return null;
+    }
+
+    public void updatePhone(int userID, String phoneNumber) {
+        String sql = "UPDATE Users SET phoneNumber = ? WHERE userID = ?";
+        try {
+            PreparedStatement st = connection.prepareStatement(sql);
+            st.setString(1, phoneNumber);
+            st.setInt(2, userID);
+            st.executeUpdate();
+        } catch (SQLException e) {
+            System.out.println(e);
+        }
     }
 }
