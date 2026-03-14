@@ -22,10 +22,10 @@ public class ConfigUtils {
     // VNPAY CONFIG
     public static final String VNPAY_TMN_CODE = getEnv("VNPAY_TMN_CODE", "");
     public static final String VNPAY_SECRET_KEY = getEnv("VNPAY_SECRET_KEY", "");
-    public static final String VNPAY_RETURN_URL = getEnv("VNPAY_RETURN_URL", "http://localhost:8080/BusTicketDev/vnpay-return");
+    public static final String VNPAY_RETURN_URL = getEnv("VNPAY_RETURN_URL", "https://fudabus.store/vnpay-return");
 
     // APP CONFIG
-    public static final String APP_BASE_URL = getEnv("APP_BASE_URL", "http://localhost:8080/BusTicketDev");
+    public static final String APP_BASE_URL = getEnv("APP_BASE_URL", "https://fudabus.store");
     public static final String GOOGLE_REDIRECT_URI = getEnv("GOOGLE_REDIRECT_URI", APP_BASE_URL + "/login-google-callback");
 
     public static String getEnv(String key, String defaultValue) {
