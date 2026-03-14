@@ -2,10 +2,9 @@
 <%@taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
 <!DOCTYPE html>
 <html lang="vi">
-
 <head>
     <jsp:include page="../common/head.jsp"></jsp:include>
-    <title>Dang ky - BusTicket</title>
+    <title>Đăng ký - FUDA Bus</title>
     <link rel="stylesheet" href="assets/css/style.css">
     <style>
         .auth-container {
@@ -13,25 +12,30 @@
             display: flex;
             justify-content: center;
             align-items: center;
-            background: radial-gradient(circle at 50% 50%, #eef2f5 0%, #e6e9ef 100%);
-            padding: 40px 0;
+            background: radial-gradient(circle at top, #f3ede0 0%, #e9f4f1 38%, #f7f4ee 100%);
+            padding: 32px 16px;
         }
 
         .auth-card {
-            width: 400px;
-            padding: 40px;
+            width: min(460px, 100%);
+            padding: 36px;
             text-align: center;
         }
 
         .auth-title {
-            font-size: 24px;
-            font-weight: 600;
-            margin-bottom: 24px;
+            font-size: 28px;
+            font-weight: 700;
+            margin-bottom: 10px;
+        }
+
+        .auth-subtitle {
+            color: var(--text-secondary);
+            margin-bottom: 26px;
         }
 
         .form-control {
             width: 100%;
-            margin-bottom: 16px;
+            margin-bottom: 14px;
         }
 
         .btn-submit {
@@ -39,53 +43,55 @@
             height: 48px;
             background: var(--primary-color);
             color: white;
-            border-radius: 12px;
+            border-radius: 14px;
             border: none;
             font-size: 16px;
-            font-weight: 600;
+            font-weight: 700;
             cursor: pointer;
-            transition: transform 0.2s;
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+            box-shadow: 0 14px 28px -18px rgba(15, 118, 110, 0.8);
         }
 
         .btn-submit:hover {
-            transform: scale(1.02);
+            transform: translateY(-1px);
         }
 
         .error-msg {
-            color: var(--error-color);
+            color: #b91c1c;
             margin-bottom: 16px;
             font-size: 14px;
+            background: #fff1f2;
+            border: 1px solid #fecdd3;
+            border-radius: 12px;
+            padding: 12px 14px;
         }
     </style>
 </head>
-
 <body class="fade-in">
     <div class="auth-container">
         <div class="glass-panel auth-card">
-            <a href="${pageContext.request.contextPath}/"
-                style="display: block; margin-bottom: 20px; font-weight: 700; font-size: 20px;">BusTicket</a>
-            <h2 class="auth-title">Tao tai khoan moi</h2>
+            <a href="${pageContext.request.contextPath}/" style="display: block; margin-bottom: 18px; font-weight: 800; font-size: 20px;" class="text-gradient">FUDA Bus</a>
+            <h2 class="auth-title">Tạo tài khoản mới</h2>
+            <p class="auth-subtitle">Lưu lịch sử đặt vé, quản lý thông tin hành khách và thanh toán thuận tiện hơn ở những lần tiếp theo.</p>
 
             <c:if test="${not empty error}">
                 <div class="error-msg">${error}</div>
             </c:if>
 
             <form action="register" method="POST">
-                <input type="text" name="username" class="form-control" placeholder="Ten dang nhap" required>
-                <input type="text" name="fullName" class="form-control" placeholder="Ho va ten" required>
-                <input type="email" name="email" class="form-control" placeholder="Dia chi email" required>
-                <input type="text" name="phoneNumber" class="form-control" placeholder="So dien thoai" required>
-                <input type="password" name="password" class="form-control" placeholder="Mat khau" required>
-                <input type="password" name="confirmPassword" class="form-control"
-                    placeholder="Nhap lai mat khau" required>
-                <button type="submit" class="btn-submit">Dang ky</button>
+                <input type="text" name="username" class="form-control" placeholder="Tên đăng nhập" required>
+                <input type="text" name="fullName" class="form-control" placeholder="Họ và tên" required>
+                <input type="email" name="email" class="form-control" placeholder="Địa chỉ email" required>
+                <input type="text" name="phoneNumber" class="form-control" placeholder="Số điện thoại" required>
+                <input type="password" name="password" class="form-control" placeholder="Mật khẩu" required>
+                <input type="password" name="confirmPassword" class="form-control" placeholder="Nhập lại mật khẩu" required>
+                <button type="submit" class="btn-submit">Đăng ký</button>
             </form>
 
-            <div style="margin-top: 20px; font-size: 14px; color: var(--text-secondary);">
-                Da co tai khoan? <a href="login" style="color: var(--primary-color);">Dang nhap</a>
+            <div style="margin-top: 18px; font-size: 14px; color: var(--text-secondary);">
+                Đã có tài khoản? <a href="login" style="color: var(--primary-color); font-weight: 700;">Đăng nhập</a>
             </div>
         </div>
     </div>
 </body>
-
 </html>

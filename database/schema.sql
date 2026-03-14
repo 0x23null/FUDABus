@@ -76,30 +76,79 @@ IF NOT EXISTS (SELECT * FROM sys.objects WHERE object_id = OBJECT_ID(N'[dbo].[Bo
 BEGIN
     CREATE TABLE Bookings (
         bookingID INT IDENTITY(1,1) PRIMARY KEY,
-        tripID INT FOREIGN KEY REFERENCES Trips(tripID),
+        tripID INT FOREIGN KEY REFERENCES Trips(tripID), -- Primary outbound trip for quick listing
         userID INT FOREIGN KEY REFERENCES Users(userID),
         bookingDate DATETIME DEFAULT GETDATE(),
         totalPrice DECIMAL(18, 2) NOT NULL,
         status NVARCHAR(20) DEFAULT 'Pending', -- 'Pending', 'Paid', 'Cancelled'
-        qrCodeURL NVARCHAR(255) -- Path to generated QR code
+        qrCodeURL NVARCHAR(255), -- Path to generated QR code
+        ticketCode NVARCHAR(50) UNIQUE,
+        tripType NVARCHAR(20) DEFAULT 'OneWay',
+        adultCount INT DEFAULT 1,
+        childCount INT DEFAULT 0
     );
 END
 GO
 
--- 6. BookingDetails Table (For specific seats)
+-- 6. Legacy BookingDetails Table (kept for compatibility)
 IF NOT EXISTS (SELECT * FROM sys.objects WHERE object_id = OBJECT_ID(N'[dbo].[BookingDetails]') AND type in (N'U'))
 BEGIN
     CREATE TABLE BookingDetails (
         detailID INT IDENTITY(1,1) PRIMARY KEY,
         bookingID INT FOREIGN KEY REFERENCES Bookings(bookingID) ON DELETE CASCADE,
         seatNumber NVARCHAR(10) NOT NULL,
-        passengerName NVARCHAR(100), -- Optional: if booking for others
-        price DECIMAL(18, 2) -- Price at the time of booking
+        passengerName NVARCHAR(100), -- Legacy compatibility
+        price DECIMAL(18, 2) -- Legacy compatibility
     );
 END
 GO
 
--- 7. Payments Table
+IF NOT EXISTS (SELECT * FROM sys.objects WHERE object_id = OBJECT_ID(N'[dbo].[BookingSegments]') AND type in (N'U'))
+BEGIN
+    CREATE TABLE BookingSegments (
+        segmentID INT IDENTITY(1,1) PRIMARY KEY,
+        bookingID INT NOT NULL FOREIGN KEY REFERENCES Bookings(bookingID) ON DELETE CASCADE,
+        tripID INT NOT NULL FOREIGN KEY REFERENCES Trips(tripID),
+        segmentType NVARCHAR(20) NOT NULL, -- 'OUTBOUND', 'RETURN'
+        segmentOrder INT NOT NULL,
+        segmentPrice DECIMAL(18, 2) NOT NULL
+    );
+END
+GO
+
+-- 7. BookingPassengers Table
+IF NOT EXISTS (SELECT * FROM sys.objects WHERE object_id = OBJECT_ID(N'[dbo].[BookingPassengers]') AND type in (N'U'))
+BEGIN
+    CREATE TABLE BookingPassengers (
+        passengerID INT IDENTITY(1,1) PRIMARY KEY,
+        bookingID INT NOT NULL FOREIGN KEY REFERENCES Bookings(bookingID) ON DELETE CASCADE,
+        passengerType NVARCHAR(20) NOT NULL, -- 'Adult', 'Child'
+        displayLabel NVARCHAR(100)
+    );
+END
+GO
+
+-- 8. BookingSegmentSeats Table
+IF NOT EXISTS (SELECT * FROM sys.objects WHERE object_id = OBJECT_ID(N'[dbo].[BookingSegmentSeats]') AND type in (N'U'))
+BEGIN
+    CREATE TABLE BookingSegmentSeats (
+        bookingSegmentSeatID INT IDENTITY(1,1) PRIMARY KEY,
+        segmentID INT NOT NULL FOREIGN KEY REFERENCES BookingSegments(segmentID) ON DELETE CASCADE,
+        passengerID INT NULL FOREIGN KEY REFERENCES BookingPassengers(passengerID),
+        seatNumber NVARCHAR(10) NOT NULL,
+        price DECIMAL(18, 2) NOT NULL
+    );
+END
+GO
+
+-- Ensure a seat cannot be sold twice on the same segment
+IF NOT EXISTS (SELECT * FROM sys.indexes WHERE name = 'UX_BookingSegmentSeats_Segment_Seat' AND object_id = OBJECT_ID('BookingSegmentSeats'))
+BEGIN
+    CREATE UNIQUE INDEX UX_BookingSegmentSeats_Segment_Seat ON BookingSegmentSeats(segmentID, seatNumber);
+END
+GO
+
+-- 9. Payments Table
 IF NOT EXISTS (SELECT * FROM sys.objects WHERE object_id = OBJECT_ID(N'[dbo].[Payments]') AND type in (N'U'))
 BEGIN
     CREATE TABLE Payments (

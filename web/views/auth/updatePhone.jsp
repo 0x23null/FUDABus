@@ -5,7 +5,7 @@
 
 <head>
     <jsp:include page="../common/head.jsp"></jsp:include>
-    <title>Cap nhat so dien thoai - BusTicket</title>
+    <title>Cập nhật số điện thoại - BusTicket</title>
     <link rel="stylesheet" href="assets/css/style.css">
     <style>
         .auth-container {
@@ -64,16 +64,16 @@
         <div class="glass-panel auth-card">
             <a href="${pageContext.request.contextPath}/"
                 style="display: block; margin-bottom: 20px; font-weight: 700; font-size: 20px;">BusTicket</a>
-            <h2 class="auth-title">Bo sung so dien thoai</h2>
-            <p style="margin-bottom: 20px; color: var(--text-secondary); font-size: 14px;">Chung toi can so dien thoai de hoan tat viec tao tai khoan.</p>
+            <h2 class="auth-title">Bổ sung số điện thoại</h2>
+            <p style="margin-bottom: 20px; color: var(--text-secondary); font-size: 14px;">Chúng tôi cần số điện thoại để hoàn tất việc tạo tài khoản.</p>
 
             <c:if test="${not empty error}">
                 <div class="error-msg">${error}</div>
             </c:if>
 
             <form action="update-phone" method="POST">
-                <input type="text" name="phoneNumber" class="form-control" placeholder="So dien thoai" required autofocus>
-                <button type="submit" class="btn-submit">Tiep tuc</button>
+                <input type="text" name="phoneNumber" class="form-control" placeholder="Số điện thoại" required autofocus>
+                <button type="submit" class="btn-submit">Tiếp tục</button>
             </form>
         </div>
     </div>

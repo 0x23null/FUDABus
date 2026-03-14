@@ -1,7 +1,6 @@
 package controller;
 
 import dal.UserDAO;
-import model.User;
 import java.io.IOException;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.annotation.WebServlet;
@@ -9,6 +8,7 @@ import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpSession;
+import model.User;
 
 @WebServlet(name = "LoginServlet", urlPatterns = { "/login" })
 public class LoginServlet extends HttpServlet {
@@ -47,29 +47,29 @@ public class LoginServlet extends HttpServlet {
                 }
             }
         } else {
-            request.setAttribute("error", "Ten dang nhap hoac mat khau khong dung.");
+            request.setAttribute("error", "Tên đăng nhập hoặc mật khẩu không đúng.");
             request.getRequestDispatcher("views/auth/login.jsp").forward(request, response);
         }
     }
 
     private String mapErrorMessage(String errorCode) {
         if ("LoginRequired".equals(errorCode)) {
-            return "Vui long dang nhap de tiep tuc.";
+            return "Vui lòng đăng nhập để tiếp tục.";
         }
         if ("AccessDenied".equals(errorCode)) {
-            return "Ban khong co quyen truy cap trang nay.";
+            return "Bạn không có quyền truy cập trang này.";
         }
         if ("GoogleAuthFailed".equals(errorCode)) {
-            return "Dang nhap Google that bai.";
+            return "Đăng nhập Google thất bại.";
         }
         if ("TokenExchangeFailed".equals(errorCode)) {
-            return "Khong the xac thuc Google. Vui long thu lai.";
+            return "Không thể xác thực Google. Vui lòng thử lại.";
         }
         if ("UserInfoFailed".equals(errorCode)) {
-            return "Khong the lay thong tin tai khoan Google.";
+            return "Không thể lấy thông tin tài khoản Google.";
         }
         if ("DatabaseError".equals(errorCode)) {
-            return "He thong tam thoi gap loi. Vui long thu lai sau.";
+            return "Hệ thống tạm thời gặp lỗi. Vui lòng thử lại sau.";
         }
         return errorCode;
     }

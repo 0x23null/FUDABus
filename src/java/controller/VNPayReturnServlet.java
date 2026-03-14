@@ -10,6 +10,7 @@ import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import service.BookingAccessService;
 import service.PaymentService;
 import service.ServiceException;
 import util.VNPayUtils;
@@ -51,6 +52,7 @@ public class VNPayReturnServlet extends HttpServlet {
         try {
             if ("00".equals(request.getParameter("vnp_TransactionStatus"))) {
                 paymentService.markBookingPaid(bookingID, "VNPay", txnRef);
+                BookingAccessService.clearEditablePendingBooking(request.getSession(), bookingID);
                 response.sendRedirect("ticket?id=" + bookingID);
                 return;
             }

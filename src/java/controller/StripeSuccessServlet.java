@@ -6,6 +6,7 @@ import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import service.BookingAccessService;
 import service.PaymentService;
 import service.ServiceException;
 import util.StripeUtils;
@@ -34,6 +35,7 @@ public class StripeSuccessServlet extends HttpServlet {
             }
 
             paymentService.markBookingPaid(bookingID, "Stripe", sessionID);
+            BookingAccessService.clearEditablePendingBooking(request.getSession(), bookingID);
             response.sendRedirect("ticket?id=" + bookingID);
         } catch (NumberFormatException ex) {
             response.sendRedirect("home?error=InvalidBooking");

@@ -22,44 +22,64 @@ public class SearchServlet extends HttpServlet {
         String date = request.getParameter("date");
         String tripType = request.getParameter("tripType");
         String returnDate = request.getParameter("returnDate");
-        String ticketCountStr = request.getParameter("ticketCount");
+        String selectedOutboundID = request.getParameter("selectedOutboundID");
+        int adultCount = parseCount(request.getParameter("adultCount"), 1);
+        int childCount = parseCount(request.getParameter("childCount"), 0);
 
-        if (origin == null || destination == null || date == null) {
+        if (origin == null || destination == null || date == null || origin.isBlank() || destination.isBlank()) {
             response.sendRedirect("home");
             return;
         }
 
-        int ticketCount = 1;
-        if (ticketCountStr != null && !ticketCountStr.isEmpty()) {
-            try {
-                ticketCount = Integer.parseInt(ticketCountStr);
-            } catch (NumberFormatException e) {
-                ticketCount = 1;
-            }
+        if (adultCount < 1) {
+            adultCount = 1;
+        }
+        if (childCount < 0) {
+            childCount = 0;
         }
 
         TripDAO dao = new TripDAO();
-        // Lấy chuyến đi
         List<Trip> outboundTrips = dao.searchTrips(origin, destination, date);
         if (outboundTrips.isEmpty()) {
-            outboundTrips = dao.getUpcomingTrips(); // Gợi ý chỉ chuyến tương lai
+            outboundTrips = dao.getUpcomingTrips();
             request.setAttribute("isSuggestion", true);
         }
         request.setAttribute("trips", outboundTrips);
 
-        // Lấy chuyến về nếu là Khứ hồi
-        if ("roundTrip".equals(tripType) && returnDate != null && !returnDate.isEmpty()) {
+        if ("roundTrip".equals(tripType) && returnDate != null && !returnDate.isBlank()) {
             List<Trip> returnTrips = dao.searchTrips(destination, origin, returnDate);
             request.setAttribute("returnTrips", returnTrips);
             request.setAttribute("searchReturnDate", returnDate);
+        }
+
+        if (selectedOutboundID != null && !selectedOutboundID.isBlank()) {
+            try {
+                int outboundTripID = Integer.parseInt(selectedOutboundID);
+                request.setAttribute("selectedOutboundID", outboundTripID);
+                request.setAttribute("selectedOutboundTrip", dao.getTripByID(outboundTripID));
+            } catch (NumberFormatException ignored) {
+            }
         }
 
         request.setAttribute("searchDate", date);
         request.setAttribute("searchOrigin", origin);
         request.setAttribute("searchDest", destination);
         request.setAttribute("tripType", tripType);
-        request.setAttribute("ticketCount", ticketCount);
+        request.setAttribute("adultCount", adultCount);
+        request.setAttribute("childCount", childCount);
+        request.setAttribute("passengerCount", adultCount + childCount);
 
         request.getRequestDispatcher("views/public/trip-result.jsp").forward(request, response);
+    }
+
+    private int parseCount(String raw, int fallback) {
+        if (raw == null || raw.isBlank()) {
+            return fallback;
+        }
+        try {
+            return Integer.parseInt(raw);
+        } catch (NumberFormatException e) {
+            return fallback;
+        }
     }
 }

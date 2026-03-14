@@ -39,6 +39,7 @@ public class PaymentServlet extends HttpServlet {
             }
 
             if ("Paid".equalsIgnoreCase(booking.getStatus())) {
+                BookingAccessService.clearEditablePendingBooking(request.getSession(), bookingID);
                 response.sendRedirect("ticket?id=" + bookingID);
                 return;
             }
@@ -78,6 +79,7 @@ public class PaymentServlet extends HttpServlet {
             if ("cancel".equals(action)) {
                 boolean cancelled = paymentService.cancelPendingBooking(bookingID);
                 if (cancelled) {
+                    BookingAccessService.clearEditablePendingBooking(request.getSession(), bookingID);
                     response.sendRedirect("home?msg=BookingCancelled");
                 } else {
                     response.sendRedirect("payment?bookingID=" + bookingID + "&error=CannotCancel");

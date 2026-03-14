@@ -3,219 +3,287 @@
 <%@taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
 <!DOCTYPE html>
 <html lang="vi">
-
 <head>
     <jsp:include page="../common/head.jsp"></jsp:include>
-    <title>Ve dien tu #${booking.bookingID}</title>
+    <title>Vé điện tử - ${booking.ticketCode}</title>
     <link rel="stylesheet" href="assets/css/style.css">
     <style>
-        .ticket-container {
+        body {
+            background: linear-gradient(180deg, #f8fbff 0%, #eef4fb 100%);
+        }
+
+        .page-wrap {
+            max-width: 1120px;
+            margin: 32px auto 80px;
+            padding: 0 20px;
+        }
+
+        .success-box {
+            text-align: center;
+            margin-bottom: 24px;
+        }
+
+        .success-badge {
+            width: 82px;
+            height: 82px;
+            margin: 0 auto 14px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, var(--primary-color), var(--primary-dark));
+            color: #fff;
             display: flex;
-            flex-direction: column;
             align-items: center;
-            padding-top: 40px;
-            padding-bottom: 100px;
-            min-height: 80vh;
-        }
-
-        .boarding-pass {
-            background: white;
-            width: 100%;
-            max-width: 700px;
-            border-radius: 24px;
-            box-shadow: var(--shadow-lg);
-            overflow: hidden;
-            display: flex;
-            flex-direction: column;
-        }
-
-        .pass-header {
-            background: var(--primary-color);
-            color: white;
-            padding: 24px 40px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-
-        .pass-body {
-            padding: 40px;
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 40px;
-        }
-
-        .info-group {
-            margin-bottom: 20px;
-        }
-
-        .label {
-            font-size: 12px;
-            color: var(--text-secondary);
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-            margin-bottom: 4px;
-        }
-
-        .value {
-            font-size: 18px;
-            font-weight: 600;
-            color: var(--text-primary);
-        }
-
-        .pass-footer {
-            background: #f8fafc;
-            padding: 24px 40px;
-            border-top: 2px dashed var(--border-color);
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-
-        .actions {
-            margin-top: 40px;
-            display: flex;
-            gap: 16px;
-            flex-wrap: wrap;
             justify-content: center;
+            font-size: 34px;
+            font-weight: 900;
+            box-shadow: 0 20px 36px -24px rgba(37, 99, 235, 0.72);
+        }
+
+        .success-box h1 {
+            margin: 0;
+            font-size: 38px;
+        }
+
+        .success-box p {
+            margin: 10px auto 0;
+            color: var(--text-secondary);
+            max-width: 620px;
+        }
+
+        .layout {
+            display: grid;
+            grid-template-columns: 0.95fr 1.05fr;
+            gap: 24px;
+        }
+
+        .panel {
+            background: rgba(255, 255, 255, 0.93);
+            border-radius: 30px;
+            border: 1px solid var(--border-color);
+            box-shadow: var(--shadow-md);
+            padding: 24px;
+        }
+
+        .ticket-card {
+            position: sticky;
+            top: 100px;
+            background: linear-gradient(180deg, #fbfdff 0%, #f4f8ff 100%);
+        }
+
+        .ticket-head {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 18px;
+        }
+
+        .ticket-code {
+            font-family: 'Courier New', monospace;
+            font-size: 18px;
+            font-weight: 800;
+            color: var(--primary-dark);
+        }
+
+        .info-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 16px;
+            margin-bottom: 22px;
+        }
+
+        .info-item {
+            border-radius: 18px;
+            background: #fff;
+            border: 1px solid #dce6f4;
+            padding: 14px;
+        }
+
+        .info-item small {
+            display: block;
+            color: var(--text-soft);
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
+            font-weight: 700;
+            margin-bottom: 5px;
+        }
+
+        .info-item strong {
+            color: var(--text-primary);
+            font-weight: 650;
+        }
+
+        .segment-item {
+            border: 1px solid #dce6f4;
+            border-radius: 22px;
+            padding: 18px;
+            background: #f8fbff;
+            margin-top: 16px;
+        }
+
+        .segment-item h3 {
+            margin: 0 0 8px;
+            font-size: 19px;
+        }
+
+        .segment-meta {
+            color: var(--text-secondary);
+            line-height: 1.8;
+        }
+
+        .segment-meta strong {
+            color: var(--text-primary);
+            font-weight: 650;
+        }
+
+        .ticket-actions {
+            display: flex;
+            gap: 12px;
+            flex-wrap: wrap;
+            margin-top: 20px;
+        }
+
+        .ticket-actions button,
+        .ticket-actions a {
+            border: none;
+            border-radius: 999px;
+            padding: 12px 18px;
+            font-weight: 700;
+            cursor: pointer;
+            text-decoration: none;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, var(--primary-color), var(--primary-dark));
+            color: #fff;
+        }
+
+        .btn-secondary {
+            background: #edf4ff;
+            color: var(--primary-dark);
+        }
+
+        .highlight-box {
+            background: #eff6ff;
+            border: 1px solid #bfdbfe;
+            color: #1d4ed8;
+            border-radius: 18px;
+            padding: 14px 16px;
+            font-weight: 600;
         }
 
         @media print {
+            .main-header, .ticket-actions, footer { display: none; }
+            .layout { grid-template-columns: 1fr; }
+            .ticket-card { position: static; }
+        }
 
-            .main-header,
-            .actions,
-            footer {
-                display: none;
-            }
-
-            .ticket-container {
-                padding: 0;
-                min-height: 0;
-            }
-
-            .boarding-pass {
-                box-shadow: none;
-                border: 1px solid #000;
-                width: 100%;
-                max-width: none;
-            }
-
-            body {
-                background: white;
-            }
+        @media (max-width: 900px) {
+            .layout { grid-template-columns: 1fr; }
+            .ticket-card { position: static; }
+            .info-grid { grid-template-columns: 1fr; }
         }
     </style>
 </head>
-
 <body class="fade-in">
     <jsp:include page="../common/header.jsp"></jsp:include>
 
-    <div class="container ticket-container">
-        <h2
-            style="margin-bottom: 30px; font-weight: 800; background: linear-gradient(135deg, var(--primary-color), var(--accent-color)); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">
-            Ve dien tu cua ban</h2>
-
-        <div class="boarding-pass" id="ticketContent">
-            <div class="pass-header">
-                <div style="font-size: 24px; font-weight: 800; display: flex; align-items: center; gap: 8px;">
-                    <i class="fas fa-bus-alt"></i> Vivu
-                </div>
-                <div
-                    style="background: rgba(255, 255, 255, 0.15); backdrop-filter: blur(4px); border: 1px solid rgba(255, 255, 255, 0.3); border-radius: 50px; padding: 6px 16px; display: flex; align-items: center; gap: 8px;">
-                    <span
-                        style="font-size: 10px; text-transform: uppercase; letter-spacing: 1px; opacity: 0.8; font-weight: 600;">Ma ve:</span>
-                    <span
-                        style="font-family: 'Courier New', monospace; font-weight: 700; font-size: 16px; letter-spacing: 1px;">
-                        ${not empty booking.ticketCode ? booking.ticketCode : booking.bookingID}
-                    </span>
-                </div>
-            </div>
-
-            <div class="pass-body">
-                <div class="info-group">
-                    <div class="label">Hanh khach</div>
-                    <div class="value">${booking.user.fullName}</div>
-                </div>
-                <div class="info-group">
-                    <div class="label">Ngay di</div>
-                    <div class="value">
-                        <fmt:formatDate value="${booking.trip.departureTime}" pattern="dd/MM/yyyy" />
-                    </div>
-                </div>
-
-                <div class="info-group">
-                    <div class="label">Diem di</div>
-                    <div class="value">${booking.trip.route.origin}</div>
-                    <div style="font-size: 14px; color: var(--text-secondary);">
-                        <fmt:formatDate value="${booking.trip.departureTime}" pattern="HH:mm" />
-                    </div>
-                </div>
-                <div class="info-group">
-                    <div class="label">Diem den</div>
-                    <div class="value">${booking.trip.route.destination}</div>
-                    <div style="font-size: 14px; color: var(--text-secondary);">
-                        <fmt:formatDate value="${booking.trip.arrivalTime}" pattern="HH:mm" />
-                    </div>
-                </div>
-
-                <div class="info-group">
-                    <div class="label">Thong tin xe</div>
-                    <div class="value">${booking.trip.bus.busNumber}
-                        <span style="font-weight: 400; font-size: 14px; color: var(--text-secondary);">
-                            (${booking.trip.bus.busType})
-                        </span>
-                    </div>
-                </div>
-                <div class="info-group">
-                    <div class="label">So ghe</div>
-                    <div class="value" style="color: var(--primary-color);">
-                        <c:forEach var="seat" items="${booking.bookedSeats}" varStatus="loop">
-                            ${seat}${!loop.last ? ', ' : ''}
-                        </c:forEach>
-                    </div>
-                </div>
-            </div>
-
-            <div class="pass-footer">
-                <div>
-                    <div class="label">Tong tien</div>
-                    <div class="value" style="color: var(--primary-dark);">
-                        <fmt:formatNumber value="${booking.totalPrice}" type="number" maxFractionDigits="0" /> VND
-                    </div>
-                </div>
-                <div style="text-align: right;">
-                    <div class="label">Trang thai</div>
-                    <div class="value" style="color: ${booking.status == 'Paid' ? 'var(--success)' : 'var(--warning)'}">
-                        ${booking.status}
-                    </div>
-                </div>
-            </div>
+    <div class="page-wrap">
+        <div class="success-box">
+            <div class="success-badge">✓</div>
+            <h1>Mua vé xe thành công</h1>
+            <p>Vé của bạn đã sẵn sàng. Bạn có thể tải PDF, in vé hoặc dùng mã QR khi lên xe.</p>
         </div>
 
-        <div class="actions">
-            <button onclick="downloadPDF()" class="btn btn-secondary"><i class="fas fa-download"></i> Tai PDF</button>
-            <button onclick="window.print()" class="btn btn-secondary"><i class="fas fa-print"></i> In ve</button>
-            <a href="${pageContext.request.contextPath}/home" class="btn btn-primary">Dat chuyen moi</a>
+        <div class="layout" id="ticketContent">
+            <div class="panel ticket-card">
+                <div class="ticket-head">
+                    <div>
+                        <div style="color:var(--text-soft); font-size:12px; font-weight:700; text-transform:uppercase; letter-spacing:0.08em;">Mã đặt chỗ</div>
+                        <div class="ticket-code">${booking.ticketCode}</div>
+                    </div>
+                    <div id="qrcode"></div>
+                </div>
+
+                <div class="info-grid">
+                    <div class="info-item">
+                        <small>Khách hàng</small>
+                        <strong>${booking.user.fullName}</strong>
+                    </div>
+                    <div class="info-item">
+                        <small>Trạng thái</small>
+                        <strong>${booking.status}</strong>
+                    </div>
+                    <div class="info-item">
+                        <small>Điện thoại</small>
+                        <strong>${booking.user.phoneNumber}</strong>
+                    </div>
+                    <div class="info-item">
+                        <small>Tổng tiền</small>
+                        <strong class="price-emphasis"><fmt:formatNumber value="${booking.totalPrice}" type="number" maxFractionDigits="0" />đ</strong>
+                    </div>
+                    <div class="info-item">
+                        <small>Hành khách</small>
+                        <strong>${booking.adultCount} người lớn<c:if test="${booking.childCount > 0}">, ${booking.childCount} trẻ em</c:if></strong>
+                    </div>
+                    <div class="info-item">
+                        <small>Ngày đặt</small>
+                        <strong><fmt:formatDate value="${booking.bookingDate}" pattern="HH:mm dd/MM/yyyy" /></strong>
+                    </div>
+                </div>
+
+                <div class="highlight-box">
+                    Mang theo mã QR hoặc mã đặt chỗ khi làm thủ tục lên xe. Nên có mặt trước giờ xuất bến ít nhất 30 phút.
+                </div>
+
+                <div class="ticket-actions">
+                    <button onclick="window.print()" class="btn-secondary">In vé</button>
+                    <button onclick="downloadPDF()" class="btn-secondary">Tải PDF</button>
+                    <a href="${pageContext.request.contextPath}/home" class="btn-primary">Đặt chuyến mới</a>
+                </div>
+            </div>
+
+            <div class="panel">
+                <h2 style="margin-top:0;">Thông tin mua vé</h2>
+                <c:forEach items="${booking.segments}" var="segment">
+                    <div class="segment-item">
+                        <h3>${segment.displayType}</h3>
+                        <div class="segment-meta">
+                            <div><strong>Tuyến:</strong> ${segment.trip.route.origin} - ${segment.trip.route.destination}</div>
+                            <div><strong>Giờ xuất bến:</strong> <fmt:formatDate value="${segment.trip.departureTime}" pattern="HH:mm dd/MM/yyyy" /></div>
+                            <div><strong>Giờ đến dự kiến:</strong> <fmt:formatDate value="${segment.trip.arrivalTime}" pattern="HH:mm dd/MM/yyyy" /></div>
+                            <div><strong>Loại xe:</strong> ${segment.trip.bus.busType}</div>
+                            <div><strong>Số ghế:</strong>
+                                <c:forEach items="${segment.seatNumbers}" var="seat" varStatus="loop">
+                                    ${seat}<c:if test="${!loop.last}">, </c:if>
+                                </c:forEach>
+                            </div>
+                            <div><strong>Giá chặng:</strong> <span class="price-emphasis"><fmt:formatNumber value="${segment.segmentPrice * booking.totalPassengerCount}" type="number" maxFractionDigits="0" />đ</span></div>
+                        </div>
+                    </div>
+                </c:forEach>
+            </div>
         </div>
     </div>
 
-    <jsp:include page="../common/footer.jsp"></jsp:include>
-
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
     <script>
+        new QRCode(document.getElementById('qrcode'), {
+            text: '${booking.ticketCode}',
+            width: 112,
+            height: 112
+        });
+
         function downloadPDF() {
             const element = document.getElementById('ticketContent');
-            const opt = {
-                margin: 10,
-                filename: 'BusTicket-' + '${not empty booking.ticketCode ? booking.ticketCode : booking.bookingID}' + '.pdf',
+            html2pdf().set({
+                margin: 8,
+                filename: 'BusTicket-${booking.ticketCode}.pdf',
                 image: { type: 'jpeg', quality: 0.98 },
                 html2canvas: { scale: 2, useCORS: true },
                 jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
-            };
-
-            html2pdf().set(opt).from(element).save();
+            }).from(element).save();
         }
     </script>
 </body>
-
 </html>

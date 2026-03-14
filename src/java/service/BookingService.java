@@ -20,15 +20,25 @@ import util.PasswordUtils;
 public class BookingService {
 
     public BookingCreationResult createBooking(User user, int tripID, Integer returnTripID,
+            int adultCount, int childCount,
             String selectedSeats, String returnSeats, String guestName, String guestPhone, String guestEmail)
             throws ServiceException {
         String[] outboundSeatArray = normalizeSeats(selectedSeats);
         String[] returnSeatArray = normalizeSeats(returnSeats);
+        int passengerCount = adultCount + childCount;
 
-        if (outboundSeatArray.length == 0) {
-            throw new ServiceException("Vui long chon it nhat mot ghe.");
+        if (adultCount < 1) {
+            throw new ServiceException("Can it nhat mot nguoi lon cho moi don dat ve.");
         }
-
+        if (childCount < 0) {
+            throw new ServiceException("So luong tre em khong hop le.");
+        }
+        if (passengerCount <= 0) {
+            throw new ServiceException("Vui long chon it nhat mot hanh khach.");
+        }
+        if (outboundSeatArray.length != passengerCount) {
+            throw new ServiceException("Vui long chon dung " + passengerCount + " ghe cho chuyen di.");
+        }
         if (returnTripID != null && returnTripID == tripID) {
             throw new ServiceException("Chuyen di va chuyen ve khong duoc trung nhau.");
         }
@@ -60,8 +70,8 @@ public class BookingService {
 
             Trip returnTrip = null;
             if (returnTripID != null) {
-                if (returnSeatArray.length == 0) {
-                    throw new ServiceException("Vui long chon ghe cho chuyen ve.");
+                if (returnSeatArray.length != passengerCount) {
+                    throw new ServiceException("Vui long chon dung " + passengerCount + " ghe cho chuyen ve.");
                 }
                 returnTrip = loadTrip(connection, returnTripID);
                 validateTrip(returnTrip);
@@ -77,10 +87,16 @@ public class BookingService {
                 totalPrice += returnSeatArray.length * returnTrip.getPrice();
             }
 
-            int bookingID = insertBooking(connection, tripID, bookingUserID, totalPrice, createTicketCode());
-            insertBookingDetails(connection, bookingID, outboundTrip.getPrice(), outboundSeatArray);
+            int bookingID = insertBooking(connection, tripID, bookingUserID, totalPrice, createTicketCode(),
+                    returnTrip == null ? "OneWay" : "RoundTrip", adultCount, childCount);
+            List<Integer> passengerIds = insertPassengers(connection, bookingID, adultCount, childCount);
+
+            int outboundSegmentID = insertSegment(connection, bookingID, tripID, "OUTBOUND", 1, outboundTrip.getPrice());
+            insertSegmentSeats(connection, outboundSegmentID, passengerIds, outboundTrip.getPrice(), outboundSeatArray);
+
             if (returnTrip != null) {
-                insertBookingDetails(connection, bookingID, returnTrip.getPrice(), returnSeatArray);
+                int returnSegmentID = insertSegment(connection, bookingID, returnTripID, "RETURN", 2, returnTrip.getPrice());
+                insertSegmentSeats(connection, returnSegmentID, passengerIds, returnTrip.getPrice(), returnSeatArray);
             }
 
             connection.commit();
@@ -155,9 +171,10 @@ public class BookingService {
 
     private void validateSeatsAvailable(Connection connection, int tripID, String[] seats)
             throws SQLException, ServiceException {
-        String sql = "SELECT COUNT(*) FROM BookingDetails bd "
-                + "JOIN Bookings b ON bd.bookingID = b.bookingID "
-                + "WHERE b.tripID = ? AND bd.seatNumber = ? AND b.status IN ('Pending', 'Paid')";
+        String sql = "SELECT COUNT(*) FROM BookingSegmentSeats bss "
+                + "JOIN BookingSegments bs ON bss.segmentID = bs.segmentID "
+                + "JOIN Bookings b ON bs.bookingID = b.bookingID "
+                + "WHERE bs.tripID = ? AND bss.seatNumber = ? AND b.status IN ('Pending', 'Paid')";
 
         try (PreparedStatement statement = connection.prepareStatement(sql)) {
             for (String seat : seats) {
@@ -210,15 +227,19 @@ public class BookingService {
         }
     }
 
-    private int insertBooking(Connection connection, int tripID, int userID, double totalPrice, String ticketCode)
+    private int insertBooking(Connection connection, int tripID, int userID, double totalPrice, String ticketCode,
+            String tripType, int adultCount, int childCount)
             throws SQLException, ServiceException {
-        String sql = "INSERT INTO Bookings (tripID, userID, totalPrice, status, ticketCode) "
-                + "VALUES (?, ?, ?, 'Pending', ?)";
+        String sql = "INSERT INTO Bookings (tripID, userID, totalPrice, status, ticketCode, tripType, adultCount, childCount) "
+                + "VALUES (?, ?, ?, 'Pending', ?, ?, ?, ?)";
         try (PreparedStatement statement = connection.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
             statement.setInt(1, tripID);
             statement.setInt(2, userID);
             statement.setDouble(3, totalPrice);
             statement.setString(4, ticketCode);
+            statement.setString(5, tripType);
+            statement.setInt(6, adultCount);
+            statement.setInt(7, childCount);
             statement.executeUpdate();
 
             try (ResultSet resultSet = statement.getGeneratedKeys()) {
@@ -230,14 +251,64 @@ public class BookingService {
         throw new ServiceException("Khong the tao don dat ve.");
     }
 
-    private void insertBookingDetails(Connection connection, int bookingID, double price, String[] seats)
+    private List<Integer> insertPassengers(Connection connection, int bookingID, int adultCount, int childCount)
             throws SQLException {
-        String sql = "INSERT INTO BookingDetails (bookingID, seatNumber, price) VALUES (?, ?, ?)";
+        List<Integer> passengerIds = new ArrayList<>();
+        String sql = "INSERT INTO BookingPassengers (bookingID, passengerType, displayLabel) VALUES (?, ?, ?)";
+        try (PreparedStatement statement = connection.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
+            for (int i = 1; i <= adultCount; i++) {
+                passengerIds.add(insertPassenger(statement, bookingID, "Adult", "Adult " + i));
+            }
+            for (int i = 1; i <= childCount; i++) {
+                passengerIds.add(insertPassenger(statement, bookingID, "Child", "Child " + i));
+            }
+        }
+        return passengerIds;
+    }
+
+    private int insertPassenger(PreparedStatement statement, int bookingID, String passengerType, String displayLabel)
+            throws SQLException {
+        statement.setInt(1, bookingID);
+        statement.setString(2, passengerType);
+        statement.setString(3, displayLabel);
+        statement.executeUpdate();
+        try (ResultSet resultSet = statement.getGeneratedKeys()) {
+            if (resultSet.next()) {
+                return resultSet.getInt(1);
+            }
+        }
+        throw new SQLException("Unable to create booking passenger.");
+    }
+
+    private int insertSegment(Connection connection, int bookingID, int tripID, String segmentType, int segmentOrder,
+            double segmentPrice) throws SQLException {
+        String sql = "INSERT INTO BookingSegments (bookingID, tripID, segmentType, segmentOrder, segmentPrice) "
+                + "VALUES (?, ?, ?, ?, ?)";
+        try (PreparedStatement statement = connection.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
+            statement.setInt(1, bookingID);
+            statement.setInt(2, tripID);
+            statement.setString(3, segmentType);
+            statement.setInt(4, segmentOrder);
+            statement.setDouble(5, segmentPrice);
+            statement.executeUpdate();
+            try (ResultSet resultSet = statement.getGeneratedKeys()) {
+                if (resultSet.next()) {
+                    return resultSet.getInt(1);
+                }
+            }
+        }
+        throw new SQLException("Unable to create booking segment.");
+    }
+
+    private void insertSegmentSeats(Connection connection, int segmentID, List<Integer> passengerIds, double price, String[] seats)
+            throws SQLException {
+        String sql = "INSERT INTO BookingSegmentSeats (segmentID, passengerID, seatNumber, price) VALUES (?, ?, ?, ?)";
         try (PreparedStatement statement = connection.prepareStatement(sql)) {
-            for (String seat : seats) {
-                statement.setInt(1, bookingID);
-                statement.setString(2, seat);
-                statement.setDouble(3, price);
+            for (int i = 0; i < seats.length; i++) {
+                statement.setInt(1, segmentID);
+                statement.setInt(2, passengerIds.get(i));
+                statement.setString(3, seats[i]);
+                statement.setDouble(4, price);
                 statement.addBatch();
             }
             statement.executeBatch();
@@ -306,3 +377,4 @@ public class BookingService {
         }
     }
 }
+

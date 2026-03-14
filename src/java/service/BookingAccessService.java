@@ -9,6 +9,7 @@ import model.User;
 
 public final class BookingAccessService {
     private static final String GUEST_BOOKING_ACCESS_IDS = "guestBookingAccessIds";
+    private static final String EDITABLE_PENDING_BOOKING_ID = "editablePendingBookingId";
 
     private BookingAccessService() {
     }
@@ -22,6 +23,43 @@ public final class BookingAccessService {
         getGuestBookingAccessIds(session, true).add(bookingId);
     }
 
+
+    public static void rememberEditablePendingBooking(HttpSession session, int bookingId) {
+        if (session == null) {
+            return;
+        }
+        session.setAttribute(EDITABLE_PENDING_BOOKING_ID, bookingId);
+    }
+
+    public static Integer getEditablePendingBookingId(HttpSession session) {
+        if (session == null) {
+            return null;
+        }
+
+        Object raw = session.getAttribute(EDITABLE_PENDING_BOOKING_ID);
+        if (raw instanceof Integer) {
+            return (Integer) raw;
+        }
+        if (raw instanceof String) {
+            try {
+                return Integer.valueOf((String) raw);
+            } catch (NumberFormatException ignored) {
+                return null;
+            }
+        }
+        return null;
+    }
+
+    public static void clearEditablePendingBooking(HttpSession session, Integer bookingId) {
+        if (session == null) {
+            return;
+        }
+
+        Integer currentId = getEditablePendingBookingId(session);
+        if (bookingId == null || (currentId != null && currentId.equals(bookingId))) {
+            session.removeAttribute(EDITABLE_PENDING_BOOKING_ID);
+        }
+    }
     public static boolean canAccessBooking(HttpSession session, Booking booking) {
         if (booking == null) {
             return false;

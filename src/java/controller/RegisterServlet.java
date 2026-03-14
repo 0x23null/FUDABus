@@ -1,13 +1,13 @@
 package controller;
 
 import dal.UserDAO;
-import model.User;
 import java.io.IOException;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import model.User;
 
 @WebServlet(name = "RegisterServlet", urlPatterns = { "/register" })
 public class RegisterServlet extends HttpServlet {
@@ -29,13 +29,13 @@ public class RegisterServlet extends HttpServlet {
         String phoneNumber = request.getParameter("phoneNumber");
 
         if (u == null || u.trim().isEmpty() || email == null || email.trim().isEmpty()) {
-            request.setAttribute("error", "Vui long nhap day du thong tin.");
+            request.setAttribute("error", "Vui lòng nhập đầy đủ thông tin.");
             request.getRequestDispatcher("views/auth/register.jsp").forward(request, response);
             return;
         }
 
         if (!p.equals(cp)) {
-            request.setAttribute("error", "Mat khau xac nhan khong khop.");
+            request.setAttribute("error", "Mật khẩu xác nhận không khớp.");
             request.getRequestDispatcher("views/auth/register.jsp").forward(request, response);
             return;
         }
@@ -45,13 +45,13 @@ public class RegisterServlet extends HttpServlet {
         User existingEmail = db.checkEmailExist(email.trim());
 
         if (existingUsername != null) {
-            request.setAttribute("error", "Ten dang nhap da ton tai.");
+            request.setAttribute("error", "Tên đăng nhập đã tồn tại.");
             request.getRequestDispatcher("views/auth/register.jsp").forward(request, response);
             return;
         }
 
         if (existingEmail != null) {
-            request.setAttribute("error", "Email da duoc su dung.");
+            request.setAttribute("error", "Email đã được sử dụng.");
             request.getRequestDispatcher("views/auth/register.jsp").forward(request, response);
             return;
         }

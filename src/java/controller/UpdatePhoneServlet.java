@@ -37,7 +37,7 @@ public class UpdatePhoneServlet extends HttpServlet {
 
         String phoneNumber = request.getParameter("phoneNumber");
         if (phoneNumber == null || phoneNumber.trim().isEmpty()) {
-            request.setAttribute("error", "Vui long nhap so dien thoai.");
+            request.setAttribute("error", "Vui lòng nhập số điện thoại.");
             request.getRequestDispatcher("views/auth/updatePhone.jsp").forward(request, response);
             return;
         }

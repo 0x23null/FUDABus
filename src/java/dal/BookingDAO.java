@@ -6,22 +6,26 @@ import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
 import model.Booking;
+import model.BookingPassenger;
+import model.BookingSegment;
 import model.Bus;
 import model.Route;
 import model.Trip;
+import model.User;
 
 public class BookingDAO extends DBContext {
 
     public List<Booking> getBookingsByUserID(int userID) {
         List<Booking> list = new ArrayList<>();
-        String sql = "SELECT b.*, "
-                + "t.tripID, t.departureTime, t.arrivalTime, t.price, "
+        String sql = "SELECT b.bookingID, b.tripID, b.userID, b.bookingDate, b.totalPrice, b.status, b.ticketCode, "
+                + "b.tripType, b.adultCount, b.childCount, b.qrCodeURL, "
+                + "t.tripID AS primaryTripID, t.departureTime, t.arrivalTime, t.price, "
                 + "r.routeID, r.origin, r.destination, r.duration, "
                 + "bs.busID, bs.busNumber, bs.busType "
                 + "FROM Bookings b "
-                + "JOIN Trips t ON b.tripID = t.tripID "
-                + "JOIN Routes r ON t.routeID = r.routeID "
-                + "JOIN Buses bs ON t.busID = bs.busID "
+                + "LEFT JOIN Trips t ON b.tripID = t.tripID "
+                + "LEFT JOIN Routes r ON t.routeID = r.routeID "
+                + "LEFT JOIN Buses bs ON t.busID = bs.busID "
                 + "WHERE b.userID = ? "
                 + "ORDER BY b.bookingDate DESC";
 
@@ -30,38 +34,8 @@ public class BookingDAO extends DBContext {
             st.setInt(1, userID);
             ResultSet rs = st.executeQuery();
             while (rs.next()) {
-                Booking b = new Booking();
-                b.setBookingID(rs.getInt("bookingID"));
-                b.setTicketCode(rs.getString("ticketCode"));
-                b.setTripID(rs.getInt("tripID"));
-                b.setUserID(rs.getInt("userID"));
-                b.setBookingDate(rs.getTimestamp("bookingDate"));
-                b.setTotalPrice(rs.getDouble("totalPrice"));
-                b.setStatus(rs.getString("status"));
-
-                // Set Trip info
-                Trip t = new Trip();
-                t.setTripID(rs.getInt("tripID"));
-                t.setDepartureTime(rs.getTimestamp("departureTime"));
-                t.setArrivalTime(rs.getTimestamp("arrivalTime"));
-                t.setPrice(rs.getDouble("price"));
-
-                Route r = new Route();
-                r.setRouteID(rs.getInt("routeID"));
-                r.setOrigin(rs.getString("origin"));
-                r.setDestination(rs.getString("destination"));
-                r.setDuration(rs.getInt("duration"));
-                t.setRoute(r);
-
-                Bus bus = new Bus();
-                bus.setBusID(rs.getInt("busID"));
-                bus.setBusNumber(rs.getString("busNumber"));
-                bus.setBusType(rs.getString("busType"));
-                t.setBus(bus);
-
-                b.setTrip(t);
-
-                list.add(b);
+                Booking booking = mapBookingSummary(rs);
+                list.add(booking);
             }
         } catch (SQLException e) {
             System.out.println(e);
@@ -69,50 +43,29 @@ public class BookingDAO extends DBContext {
         return list;
     }
 
-    // For Admin to view all bookings
     public List<Booking> getAllBookings() {
         List<Booking> list = new ArrayList<>();
-        String sql = "SELECT b.*, "
-                + "t.tripID, t.departureTime, t.arrivalTime, "
-                + "r.origin, r.destination, "
-                + "u.fullName "
+        String sql = "SELECT b.bookingID, b.tripID, b.userID, b.bookingDate, b.totalPrice, b.status, b.ticketCode, "
+                + "b.tripType, b.adultCount, b.childCount, b.qrCodeURL, "
+                + "t.tripID AS primaryTripID, t.departureTime, t.arrivalTime, t.price, "
+                + "r.routeID, r.origin, r.destination, r.duration, "
+                + "u.fullName, bs.busID, bs.busNumber, bs.busType "
                 + "FROM Bookings b "
-                + "JOIN Trips t ON b.tripID = t.tripID "
-                + "JOIN Routes r ON t.routeID = r.routeID "
-                + "JOIN Users u ON b.userID = u.userID "
+                + "LEFT JOIN Trips t ON b.tripID = t.tripID "
+                + "LEFT JOIN Routes r ON t.routeID = r.routeID "
+                + "LEFT JOIN Users u ON b.userID = u.userID "
+                + "LEFT JOIN Buses bs ON t.busID = bs.busID "
                 + "ORDER BY b.bookingDate DESC";
         try {
             PreparedStatement st = connection.prepareStatement(sql);
             ResultSet rs = st.executeQuery();
             while (rs.next()) {
-                Booking b = new Booking();
-                b.setBookingID(rs.getInt("bookingID"));
-                b.setTicketCode(rs.getString("ticketCode"));
-                b.setTripID(rs.getInt("tripID"));
-                b.setUserID(rs.getInt("userID"));
-                b.setBookingDate(rs.getTimestamp("bookingDate"));
-                b.setTotalPrice(rs.getDouble("totalPrice"));
-                b.setStatus(rs.getString("status"));
-
-                // Trip Info (Simplified)
-                Trip t = new Trip();
-                t.setTripID(rs.getInt("tripID"));
-                t.setDepartureTime(rs.getTimestamp("departureTime"));
-                t.setArrivalTime(rs.getTimestamp("arrivalTime"));
-
-                Route r = new Route();
-                r.setOrigin(rs.getString("origin"));
-                r.setDestination(rs.getString("destination"));
-                t.setRoute(r);
-                b.setTrip(t);
-
-                // User Info
-                model.User u = new model.User();
-                u.setUserID(rs.getInt("userID"));
-                u.setFullName(rs.getString("fullName"));
-                b.setUser(u);
-
-                list.add(b);
+                Booking booking = mapBookingSummary(rs);
+                User user = new User();
+                user.setUserID(rs.getInt("userID"));
+                user.setFullName(rs.getString("fullName"));
+                booking.setUser(user);
+                list.add(booking);
             }
         } catch (SQLException e) {
             System.out.println(e);
@@ -121,75 +74,186 @@ public class BookingDAO extends DBContext {
     }
 
     public Booking getBookingFullDetails(int bookingID) {
-        Booking b = null;
-        String sql = "SELECT b.*, "
-                + "t.tripID, t.departureTime, t.arrivalTime, t.price, "
+        String sql = "SELECT b.bookingID, b.tripID, b.userID, b.bookingDate, b.totalPrice, b.status, b.ticketCode, "
+                + "b.tripType, b.adultCount, b.childCount, b.qrCodeURL, "
+                + "t.tripID AS primaryTripID, t.departureTime, t.arrivalTime, t.price, "
                 + "r.routeID, r.origin, r.destination, r.duration, "
                 + "u.fullName, u.email, u.phoneNumber, u.role, "
                 + "bs.busID, bs.busNumber, bs.busType "
                 + "FROM Bookings b "
-                + "JOIN Trips t ON b.tripID = t.tripID "
-                + "JOIN Routes r ON t.routeID = r.routeID "
+                + "LEFT JOIN Trips t ON b.tripID = t.tripID "
+                + "LEFT JOIN Routes r ON t.routeID = r.routeID "
                 + "LEFT JOIN Users u ON b.userID = u.userID "
-                + "JOIN Buses bs ON t.busID = bs.busID "
+                + "LEFT JOIN Buses bs ON t.busID = bs.busID "
                 + "WHERE b.bookingID = ?";
         try {
             PreparedStatement st = connection.prepareStatement(sql);
             st.setInt(1, bookingID);
             ResultSet rs = st.executeQuery();
-            if (rs.next()) {
-                b = new Booking();
-                b.setBookingID(rs.getInt("bookingID"));
-                b.setTicketCode(rs.getString("ticketCode"));
-                b.setTripID(rs.getInt("tripID"));
-                b.setUserID(rs.getInt("userID"));
-                b.setBookingDate(rs.getTimestamp("bookingDate"));
-                b.setTotalPrice(rs.getDouble("totalPrice"));
-                b.setStatus(rs.getString("status"));
-
-                Trip t = new Trip();
-                t.setTripID(rs.getInt("tripID"));
-                t.setDepartureTime(rs.getTimestamp("departureTime"));
-                t.setArrivalTime(rs.getTimestamp("arrivalTime"));
-                t.setPrice(rs.getDouble("price"));
-
-                Route r = new Route();
-                r.setRouteID(rs.getInt("routeID"));
-                r.setOrigin(rs.getString("origin"));
-                r.setDestination(rs.getString("destination"));
-                r.setDuration(rs.getInt("duration"));
-                t.setRoute(r);
-
-                Bus bus = new Bus();
-                bus.setBusID(rs.getInt("busID"));
-                bus.setBusNumber(rs.getString("busNumber"));
-                bus.setBusType(rs.getString("busType"));
-                t.setBus(bus);
-
-                b.setTrip(t);
-
-                model.User u = new model.User();
-                u.setUserID(rs.getInt("userID"));
-                u.setFullName(rs.getString("fullName"));
-                u.setEmail(rs.getString("email"));
-                u.setPhoneNumber(rs.getString("phoneNumber"));
-                u.setRole(rs.getString("role"));
-                b.setUser(u);
-
-                // Fetch seats
-                String sqlSeats = "SELECT seatNumber FROM BookingDetails WHERE bookingID = ?";
-                PreparedStatement stSeats = connection.prepareStatement(sqlSeats);
-                stSeats.setInt(1, bookingID);
-                ResultSet rsSeats = stSeats.executeQuery();
-                List<String> seats = new ArrayList<>();
-                while (rsSeats.next()) {
-                    seats.add(rsSeats.getString("seatNumber"));
-                }
-                b.setBookedSeats(seats);
+            if (!rs.next()) {
+                return null;
             }
+
+            Booking booking = mapBookingSummary(rs);
+
+            User user = new User();
+            user.setUserID(rs.getInt("userID"));
+            user.setFullName(rs.getString("fullName"));
+            user.setEmail(rs.getString("email"));
+            user.setPhoneNumber(rs.getString("phoneNumber"));
+            user.setRole(rs.getString("role"));
+            booking.setUser(user);
+
+            List<BookingSegment> segments = loadSegments(bookingID);
+            booking.setSegments(segments);
+            if (booking.getTrip() == null && !segments.isEmpty()) {
+                booking.setTrip(segments.get(0).getTrip());
+            }
+
+            BookingSegment outbound = booking.getOutboundSegment();
+            if (outbound != null) {
+                booking.setBookedSeats(outbound.getSeatNumbers());
+            } else if (!segments.isEmpty()) {
+                booking.setBookedSeats(segments.get(0).getSeatNumbers());
+            } else {
+                booking.setBookedSeats(new ArrayList<>());
+            }
+
+            booking.setPassengers(loadPassengers(bookingID));
+            return booking;
         } catch (SQLException e) {
             System.out.println(e);
         }
-        return b;
+        return null;
+    }
+
+    private Booking mapBookingSummary(ResultSet rs) throws SQLException {
+        Booking booking = new Booking();
+        booking.setBookingID(rs.getInt("bookingID"));
+        booking.setTripID(rs.getInt("tripID"));
+        booking.setUserID(rs.getInt("userID"));
+        booking.setBookingDate(rs.getTimestamp("bookingDate"));
+        booking.setTotalPrice(rs.getDouble("totalPrice"));
+        booking.setStatus(rs.getString("status"));
+        booking.setTicketCode(rs.getString("ticketCode"));
+        booking.setTripType(rs.getString("tripType"));
+        booking.setAdultCount(rs.getInt("adultCount"));
+        booking.setChildCount(rs.getInt("childCount"));
+        booking.setQrCodeURL(rs.getString("qrCodeURL"));
+
+        if (rs.getObject("primaryTripID") != null) {
+            booking.setTrip(mapTrip(rs));
+        }
+        return booking;
+    }
+
+    private Trip mapTrip(ResultSet rs) throws SQLException {
+        Trip trip = new Trip();
+        trip.setTripID(rs.getInt("primaryTripID"));
+        trip.setDepartureTime(rs.getTimestamp("departureTime"));
+        trip.setArrivalTime(rs.getTimestamp("arrivalTime"));
+        trip.setPrice(rs.getDouble("price"));
+
+        Route route = new Route();
+        route.setRouteID(rs.getInt("routeID"));
+        route.setOrigin(rs.getString("origin"));
+        route.setDestination(rs.getString("destination"));
+        route.setDuration(rs.getInt("duration"));
+        trip.setRoute(route);
+
+        Bus bus = new Bus();
+        bus.setBusID(rs.getInt("busID"));
+        bus.setBusNumber(rs.getString("busNumber"));
+        bus.setBusType(rs.getString("busType"));
+        trip.setBus(bus);
+        return trip;
+    }
+
+    private List<BookingSegment> loadSegments(int bookingID) throws SQLException {
+        List<BookingSegment> segments = new ArrayList<>();
+        String sql = "SELECT bs.segmentID, bs.bookingID, bs.tripID, bs.segmentType, bs.segmentOrder, bs.segmentPrice, "
+                + "t.departureTime, t.arrivalTime, t.price, t.status, "
+                + "r.routeID, r.origin, r.destination, r.duration, "
+                + "b.busID, b.busNumber, b.busType, b.seatCapacity "
+                + "FROM BookingSegments bs "
+                + "JOIN Trips t ON bs.tripID = t.tripID "
+                + "JOIN Routes r ON t.routeID = r.routeID "
+                + "JOIN Buses b ON t.busID = b.busID "
+                + "WHERE bs.bookingID = ? "
+                + "ORDER BY bs.segmentOrder ASC";
+        try (PreparedStatement st = connection.prepareStatement(sql)) {
+            st.setInt(1, bookingID);
+            try (ResultSet rs = st.executeQuery()) {
+                while (rs.next()) {
+                    BookingSegment segment = new BookingSegment();
+                    segment.setSegmentID(rs.getInt("segmentID"));
+                    segment.setBookingID(rs.getInt("bookingID"));
+                    segment.setTripID(rs.getInt("tripID"));
+                    segment.setSegmentType(rs.getString("segmentType"));
+                    segment.setSegmentOrder(rs.getInt("segmentOrder"));
+                    segment.setSegmentPrice(rs.getDouble("segmentPrice"));
+
+                    Trip trip = new Trip();
+                    trip.setTripID(rs.getInt("tripID"));
+                    trip.setDepartureTime(rs.getTimestamp("departureTime"));
+                    trip.setArrivalTime(rs.getTimestamp("arrivalTime"));
+                    trip.setPrice(rs.getDouble("price"));
+                    trip.setStatus(rs.getString("status"));
+
+                    Route route = new Route();
+                    route.setRouteID(rs.getInt("routeID"));
+                    route.setOrigin(rs.getString("origin"));
+                    route.setDestination(rs.getString("destination"));
+                    route.setDuration(rs.getInt("duration"));
+                    trip.setRoute(route);
+
+                    Bus bus = new Bus();
+                    bus.setBusID(rs.getInt("busID"));
+                    bus.setBusNumber(rs.getString("busNumber"));
+                    bus.setBusType(rs.getString("busType"));
+                    bus.setSeatCapacity(rs.getInt("seatCapacity"));
+                    trip.setBus(bus);
+
+                    segment.setTrip(trip);
+                    segment.setSeatNumbers(loadSegmentSeats(segment.getSegmentID()));
+                    segments.add(segment);
+                }
+            }
+        }
+        return segments;
+    }
+
+    private List<String> loadSegmentSeats(int segmentID) throws SQLException {
+        List<String> seats = new ArrayList<>();
+        String sql = "SELECT seatNumber FROM BookingSegmentSeats WHERE segmentID = ? ORDER BY seatNumber";
+        try (PreparedStatement st = connection.prepareStatement(sql)) {
+            st.setInt(1, segmentID);
+            try (ResultSet rs = st.executeQuery()) {
+                while (rs.next()) {
+                    seats.add(rs.getString("seatNumber"));
+                }
+            }
+        }
+        return seats;
+    }
+
+    private List<BookingPassenger> loadPassengers(int bookingID) throws SQLException {
+        List<BookingPassenger> passengers = new ArrayList<>();
+        String sql = "SELECT passengerID, bookingID, passengerType, displayLabel FROM BookingPassengers WHERE bookingID = ? ORDER BY passengerID";
+        try (PreparedStatement st = connection.prepareStatement(sql)) {
+            st.setInt(1, bookingID);
+            try (ResultSet rs = st.executeQuery()) {
+                while (rs.next()) {
+                    BookingPassenger passenger = new BookingPassenger();
+                    passenger.setPassengerID(rs.getInt("passengerID"));
+                    passenger.setBookingID(rs.getInt("bookingID"));
+                    passenger.setPassengerType(rs.getString("passengerType"));
+                    passenger.setDisplayLabel(rs.getString("displayLabel"));
+                    passengers.add(passenger);
+                }
+            }
+        }
+        return passengers;
     }
 }
+

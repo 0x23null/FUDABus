@@ -1,42 +1,50 @@
 document.addEventListener('DOMContentLoaded', () => {
-    // Header Blur Effect on Scroll
     const header = document.querySelector('.main-header');
-    
-    window.addEventListener('scroll', () => {
-        if (window.scrollY > 0) {
-            header.style.background = 'rgba(255, 255, 255, 0.8)';
-            header.style.boxShadow = '0 1px 0 rgba(0,0,0,0.05)';
-        } else {
-            header.style.background = 'rgba(255, 255, 255, 0.8)';
-            header.style.boxShadow = 'none';
-        }
-    });
+    if (header) {
+        const syncHeaderState = () => {
+            if (window.scrollY > 8) {
+                header.style.background = 'rgba(255, 255, 255, 0.88)';
+                header.style.boxShadow = '0 12px 30px -28px rgba(22, 32, 51, 0.45)';
+            } else {
+                header.style.background = 'rgba(255, 255, 255, 0.8)';
+                header.style.boxShadow = 'none';
+            }
+        };
 
-    // Add smooth scroll to all anchor links
+        syncHeaderState();
+        window.addEventListener('scroll', syncHeaderState, { passive: true });
+    }
+
     document.querySelectorAll('a[href^="#"]').forEach(anchor => {
         anchor.addEventListener('click', function (e) {
+            const targetSelector = this.getAttribute('href');
+            if (!targetSelector || targetSelector === '#') {
+                return;
+            }
+
+            const target = document.querySelector(targetSelector);
+            if (!target) {
+                return;
+            }
+
             e.preventDefault();
-            document.querySelector(this.getAttribute('href')).scrollIntoView({
-                behavior: 'smooth'
-            });
+            target.scrollIntoView({ behavior: 'smooth' });
         });
     });
-
-    // Fade-in animation for elements
-    const observerOptions = {
-        threshold: 0.1
-    };
 
     const observer = new IntersectionObserver((entries) => {
         entries.forEach(entry => {
             if (entry.isIntersecting) {
-                entry.target.classList.add('fade-in');
+                entry.target.classList.add('is-visible');
                 observer.unobserve(entry.target);
             }
         });
-    }, observerOptions);
+    }, {
+        threshold: 0.12,
+        rootMargin: '0px 0px -48px 0px'
+    });
 
-    document.querySelectorAll('.animate-on-scroll').forEach(el => {
+    document.querySelectorAll('.animate-on-scroll, .reveal').forEach(el => {
         observer.observe(el);
     });
 });
