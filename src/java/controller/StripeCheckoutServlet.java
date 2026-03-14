@@ -1,18 +1,20 @@
 package controller;
 
-import dal.DBContext;
 import java.io.IOException;
-import java.sql.PreparedStatement;
-import java.sql.ResultSet;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import model.Booking;
+import service.BookingAccessService;
+import service.PaymentService;
+import service.ServiceException;
 import util.StripeUtils;
 
 @WebServlet(name = "StripeCheckoutServlet", urlPatterns = { "/stripe-checkout" })
 public class StripeCheckoutServlet extends HttpServlet {
+    private final PaymentService paymentService = new PaymentService();
 
     @Override
     protected void doPost(HttpServletRequest request, HttpServletResponse response)
@@ -22,30 +24,32 @@ public class StripeCheckoutServlet extends HttpServlet {
             response.sendRedirect("home");
             return;
         }
-        int bookingID = Integer.parseInt(bookingIDStr);
-        double amount = 0;
-        
-        DBContext db = new DBContext();
+
         try {
-            String sql = "SELECT totalPrice FROM Bookings WHERE bookingID = ?";
-            PreparedStatement st = db.connection.prepareStatement(sql);
-            st.setInt(1, bookingID);
-            ResultSet rs = st.executeQuery();
-            if (rs.next()) {
-                amount = rs.getDouble("totalPrice");
+            int bookingID = Integer.parseInt(bookingIDStr);
+            Booking booking = paymentService.getBookingDetails(bookingID);
+            if (booking == null) {
+                response.sendRedirect("home");
+                return;
             }
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-        
-        if (amount > 0) {
-            String name = "Bus Ticket #" + bookingID;
-            String checkoutUrl = StripeUtils.createCheckoutSession(bookingID, amount, name);
+
+            if (!BookingAccessService.canAccessBooking(request.getSession(), booking)) {
+                response.sendRedirect("home?error=AccessDenied");
+                return;
+            }
+
+            double amount = paymentService.getBookingAmount(bookingID);
+            String checkoutUrl = StripeUtils.createCheckoutSession(bookingID, amount, "Bus Ticket #" + bookingID);
             if (checkoutUrl != null) {
                 response.sendRedirect(checkoutUrl);
                 return;
             }
+
+            response.sendRedirect("payment?bookingID=" + bookingID + "&error=StripeFailed");
+        } catch (NumberFormatException ex) {
+            response.sendRedirect("home?error=InvalidBooking");
+        } catch (ServiceException ex) {
+            response.sendRedirect("payment?bookingID=" + bookingIDStr + "&error=StripeFailed");
         }
-        response.sendRedirect("payment?bookingID=" + bookingID + "&error=StripeFailed");
     }
 }

@@ -28,21 +28,35 @@ public class RegisterServlet extends HttpServlet {
         String fullName = request.getParameter("fullName");
         String phoneNumber = request.getParameter("phoneNumber");
 
+        if (u == null || u.trim().isEmpty() || email == null || email.trim().isEmpty()) {
+            request.setAttribute("error", "Vui long nhap day du thong tin.");
+            request.getRequestDispatcher("views/auth/register.jsp").forward(request, response);
+            return;
+        }
+
         if (!p.equals(cp)) {
-            request.setAttribute("error", "Passwords do not match!");
+            request.setAttribute("error", "Mat khau xac nhan khong khop.");
             request.getRequestDispatcher("views/auth/register.jsp").forward(request, response);
             return;
         }
 
         UserDAO db = new UserDAO();
-        User exist = db.checkUserExist(u);
+        User existingUsername = db.checkUserExist(u.trim());
+        User existingEmail = db.checkEmailExist(email.trim());
 
-        if (exist != null) {
-            request.setAttribute("error", "Username already exists!");
+        if (existingUsername != null) {
+            request.setAttribute("error", "Ten dang nhap da ton tai.");
             request.getRequestDispatcher("views/auth/register.jsp").forward(request, response);
-        } else {
-            db.register(u, p, email, fullName, phoneNumber);
-            response.sendRedirect("login");
+            return;
         }
+
+        if (existingEmail != null) {
+            request.setAttribute("error", "Email da duoc su dung.");
+            request.getRequestDispatcher("views/auth/register.jsp").forward(request, response);
+            return;
+        }
+
+        db.register(u.trim(), p, email.trim(), fullName, phoneNumber);
+        response.sendRedirect("login");
     }
 }

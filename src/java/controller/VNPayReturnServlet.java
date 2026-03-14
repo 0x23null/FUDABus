@@ -1,10 +1,6 @@
 package controller;
 
-import dal.DBContext;
 import java.io.IOException;
-import java.net.URLEncoder;
-import java.nio.charset.StandardCharsets;
-import java.sql.PreparedStatement;
 import java.util.Enumeration;
 import java.util.HashMap;
 import java.util.Map;
@@ -14,10 +10,14 @@ import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import service.PaymentService;
+import service.ServiceException;
 import util.VNPayUtils;
 
 @WebServlet(name = "VNPayReturnServlet", urlPatterns = { "/vnpay-return" })
 public class VNPayReturnServlet extends HttpServlet {
+    private final PaymentService paymentService = new PaymentService();
+
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
@@ -25,60 +25,51 @@ public class VNPayReturnServlet extends HttpServlet {
         for (Enumeration<String> params = request.getParameterNames(); params.hasMoreElements();) {
             String fieldName = params.nextElement();
             String fieldValue = request.getParameter(fieldName);
-            if ((fieldValue != null) && (fieldValue.length() > 0)) {
+            if (fieldValue != null && !fieldValue.isEmpty()) {
                 fields.put(fieldName, fieldValue);
             }
         }
 
-        String vnp_SecureHash = request.getParameter("vnp_SecureHash");
-        if (fields.containsKey("vnp_SecureHashType")) {
-            fields.remove("vnp_SecureHashType");
-        }
-        if (fields.containsKey("vnp_SecureHash")) {
-            fields.remove("vnp_SecureHash");
-        }
+        String secureHash = request.getParameter("vnp_SecureHash");
+        fields.remove("vnp_SecureHashType");
+        fields.remove("vnp_SecureHash");
 
         String signValue = VNPayUtils.hashAllFields(fields);
         String txnRef = request.getParameter("vnp_TxnRef");
-        int bookingID = 0;
-        try {
-            bookingID = Integer.parseInt(txnRef.split("_")[0]);
-        } catch (Exception e) {}
+        int bookingID = extractBookingID(txnRef);
 
-        if (signValue.equals(vnp_SecureHash)) {
-            if ("00".equals(request.getParameter("vnp_TransactionStatus"))) {
-                // Success
-                updateBookingStatus(bookingID, "Paid");
-                response.sendRedirect("ticket?id=" + bookingID);
-            } else {
-                // Failed
-                updateBookingStatus(bookingID, "Payment Failed");
-                response.sendRedirect("payment?bookingID=" + bookingID + "&error=PaymentFailed");
-            }
-        } else {
-            // Invalid Signature
+        if (bookingID <= 0) {
+            response.sendRedirect("home?error=InvalidBooking");
+            return;
+        }
+
+        if (!signValue.equals(secureHash)) {
             response.sendRedirect("payment?bookingID=" + bookingID + "&error=InvalidHash");
+            return;
+        }
+
+        try {
+            if ("00".equals(request.getParameter("vnp_TransactionStatus"))) {
+                paymentService.markBookingPaid(bookingID, "VNPay", txnRef);
+                response.sendRedirect("ticket?id=" + bookingID);
+                return;
+            }
+
+            paymentService.recordFailedPayment(bookingID, "VNPay", txnRef);
+            response.sendRedirect("payment?bookingID=" + bookingID + "&error=PaymentFailed");
+        } catch (ServiceException ex) {
+            response.sendRedirect("payment?bookingID=" + bookingID + "&error=PaymentFailed");
         }
     }
 
-    private void updateBookingStatus(int bookingID, String status) {
-        DBContext db = new DBContext();
+    private int extractBookingID(String txnRef) {
+        if (txnRef == null || txnRef.trim().isEmpty()) {
+            return 0;
+        }
         try {
-            String sql = "UPDATE Bookings SET status = ? WHERE bookingID = ?";
-            PreparedStatement st = db.connection.prepareStatement(sql);
-            st.setString(1, status);
-            st.setInt(2, bookingID);
-            st.executeUpdate();
-
-            if ("Paid".equals(status)) {
-                String sqlPay = "INSERT INTO Payments (bookingID, amount, paymentMethod, status) VALUES (?, (SELECT totalPrice FROM Bookings WHERE bookingID = ?), 'VNPay', 'Success')";
-                PreparedStatement st2 = db.connection.prepareStatement(sqlPay);
-                st2.setInt(1, bookingID);
-                st2.setInt(2, bookingID);
-                st2.executeUpdate();
-            }
-        } catch (Exception e) {
-            System.out.println(e);
+            return Integer.parseInt(txnRef.split("_")[0]);
+        } catch (NumberFormatException ex) {
+            return 0;
         }
     }
 }

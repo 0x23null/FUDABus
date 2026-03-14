@@ -37,15 +37,15 @@ public class UpdatePhoneServlet extends HttpServlet {
 
         String phoneNumber = request.getParameter("phoneNumber");
         if (phoneNumber == null || phoneNumber.trim().isEmpty()) {
-            request.setAttribute("error", "Phone number is required!");
+            request.setAttribute("error", "Vui long nhap so dien thoai.");
             request.getRequestDispatcher("views/auth/updatePhone.jsp").forward(request, response);
             return;
         }
 
         UserDAO db = new UserDAO();
-        db.updatePhone(pendingUser.getUserID(), phoneNumber);
-        
-        pendingUser.setPhoneNumber(phoneNumber);
+        db.updatePhone(pendingUser.getUserID(), phoneNumber.trim());
+
+        pendingUser.setPhoneNumber(phoneNumber.trim());
         session.setAttribute("user", pendingUser);
         session.removeAttribute("pendingUser");
 

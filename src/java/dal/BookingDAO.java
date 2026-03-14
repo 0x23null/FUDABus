@@ -125,7 +125,7 @@ public class BookingDAO extends DBContext {
         String sql = "SELECT b.*, "
                 + "t.tripID, t.departureTime, t.arrivalTime, t.price, "
                 + "r.routeID, r.origin, r.destination, r.duration, "
-                + "u.fullName, u.email, u.phoneNumber, "
+                + "u.fullName, u.email, u.phoneNumber, u.role, "
                 + "bs.busID, bs.busNumber, bs.busType "
                 + "FROM Bookings b "
                 + "JOIN Trips t ON b.tripID = t.tripID "
@@ -173,6 +173,7 @@ public class BookingDAO extends DBContext {
                 u.setFullName(rs.getString("fullName"));
                 u.setEmail(rs.getString("email"));
                 u.setPhoneNumber(rs.getString("phoneNumber"));
+                u.setRole(rs.getString("role"));
                 b.setUser(u);
 
                 // Fetch seats

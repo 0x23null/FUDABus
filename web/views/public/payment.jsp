@@ -6,7 +6,7 @@
 
 <head>
     <jsp:include page="../common/head.jsp"></jsp:include>
-    <title>Thanh Toán - BusTicket</title>
+    <title>Thanh toan - BusTicket</title>
     <link rel="stylesheet" href="assets/css/style.css">
     <style>
         .checkout-page {
@@ -19,14 +19,13 @@
             align-items: flex-start;
         }
 
-        /* Left Panel */
         .payment-methods {
             background: #fff;
             border-radius: 12px;
             padding: 30px;
             box-shadow: 0 4px 15px rgba(0,0,0,0.05);
         }
-        
+
         .payment-methods h3 {
             font-size: 20px;
             font-weight: 600;
@@ -67,7 +66,7 @@
             object-fit: contain;
             margin-right: 16px;
         }
-        
+
         .vnpay-icon {
             background: #eff6ff;
             border-radius: 8px;
@@ -86,20 +85,19 @@
             color: #666;
         }
 
-        /* Center total (shown on left panel at bottom) */
         .total-pay-box {
             text-align: center;
             margin-top: 30px;
             padding-top: 20px;
             border-top: 1px dashed #e0e0e0;
         }
-        
+
         .total-pay-box p {
             font-size: 16px;
             color: #666;
             margin-bottom: 8px;
         }
-        
+
         .total-pay-amount {
             font-size: 32px;
             font-weight: 700;
@@ -119,12 +117,11 @@
             cursor: pointer;
             transition: background 0.2s;
         }
-        
+
         .btn-checkout:hover {
             background: #d84500;
         }
 
-        /* Right Panel */
         .info-panel {
             background: #fff;
             border-radius: 12px;
@@ -183,20 +180,18 @@
     <jsp:include page="../common/header.jsp"></jsp:include>
 
     <div class="checkout-page">
-        <!-- Phương thức thanh toán -->
         <div class="payment-methods">
-            <h3>Chọn phương thức thanh toán</h3>
-            
+            <h3>Chon phuong thuc thanh toan</h3>
+
             <form id="paymentForm" method="POST">
                 <input type="hidden" name="bookingID" value="${booking.bookingID}">
-                <input type="hidden" name="amount" value="${booking.totalPrice}">
 
                 <label class="method-item active">
                     <input type="radio" name="paymentMethod" value="vnpay" checked onchange="changeMethod(this)">
                     <img src="https://vnpay.vn/s1/statics.vnpay.vn/2023/6/0oxhzjmxbksr1686814746087.png" alt="VNPay" class="method-icon vnpay-icon">
                     <div class="method-details">
                         <h4>VNPay</h4>
-                        <p>Thanh toán qua mã QR VNPay hoặc thẻ ATM/Internet Banking.</p>
+                        <p>Thanh toan qua QR VNPay hoac the ATM/Internet Banking.</p>
                     </div>
                 </label>
 
@@ -205,40 +200,52 @@
                     <img src="https://upload.wikimedia.org/wikipedia/commons/b/ba/Stripe_Logo%2C_revised_2016.svg" alt="Stripe" class="method-icon" style="padding: 0 4px;">
                     <div class="method-details">
                         <h4>Stripe</h4>
-                        <p>Thanh toán an toàn bằng thẻ tín dụng quốc tế (Visa, Mastercard, etc.).</p>
+                        <p>Thanh toan an toan bang the quoc te nhu Visa va Mastercard.</p>
                     </div>
                 </label>
 
                 <div class="total-pay-box">
-                    <p>Tổng thanh toán</p>
+                    <p>Tong thanh toan</p>
                     <div class="total-pay-amount">
-                        <fmt:formatNumber value="${booking.totalPrice}" type="number" maxFractionDigits="0" />đ
+                        <fmt:formatNumber value="${booking.totalPrice}" type="number" maxFractionDigits="0" />d
                     </div>
-                    <button type="button" class="btn-checkout" onclick="submitPayment()">Thanh Toán</button>
-                    
+                    <button type="button" class="btn-checkout" onclick="submitPayment()">Thanh toan</button>
+
                     <c:if test="${not empty param.error}">
-                        <p style="color: red; margin-top: 15px; font-size: 14px;">Thanh toán thất bại hoặc đã bị hủy. Vui lòng thử lại.</p>
+                        <p style="color: red; margin-top: 15px; font-size: 14px;">
+                            <c:choose>
+                                <c:when test="${param.error == 'CannotCancel'}">Khong the huy don dat ve nay.</c:when>
+                                <c:when test="${param.error == 'UnsupportedPaymentFlow'}">Phuong thuc thanh toan nay khong con duoc ho tro.</c:when>
+                                <c:when test="${param.error == 'StripeVerificationFailed'}">Khong the xac minh giao dich Stripe.</c:when>
+                                <c:when test="${param.error == 'PaymentFailed'}">Thanh toan chua thanh cong. Vui long thu lai.</c:when>
+                                <c:when test="${param.error == 'InvalidHash'}">Chu ky thanh toan khong hop le.</c:when>
+                                <c:otherwise>Thanh toan that bai hoac da bi huy. Vui long thu lai.</c:otherwise>
+                            </c:choose>
+                        </p>
                     </c:if>
                 </div>
             </form>
-            
-             <div style="text-align: center; margin-top: 20px;">
-                <a href="payment?action=cancel&bookingID=${booking.bookingID}"
-                    style="font-size: 14px; color: #ef4444; font-weight: 600; text-decoration: none;"
-                    onclick="return confirm('Bạn có chắc chắn muốn hủy đặt vé này không?');">Hủy thanh toán</a>
-            </div>
+
+            <form action="payment" method="POST" style="text-align: center; margin-top: 20px;"
+                onsubmit="return confirm('Ban co chac chan muon huy don dat ve nay khong?');">
+                <input type="hidden" name="bookingID" value="${booking.bookingID}">
+                <input type="hidden" name="action" value="cancel">
+                <button type="submit"
+                    style="font-size: 14px; color: #ef4444; font-weight: 600; text-decoration: none; background: none; border: none; cursor: pointer;">
+                    Huy thanh toan
+                </button>
+            </form>
         </div>
 
-        <!-- Thông tin chi tiết -->
         <div class="info-panel">
             <div class="info-section">
-                <h3>Thông tin hành khách</h3>
+                <h3>Thong tin hanh khach</h3>
                 <div class="info-row">
-                    <span class="info-label">Họ và tên</span>
+                    <span class="info-label">Ho va ten</span>
                     <span class="info-value">${booking.user.fullName}</span>
                 </div>
                 <div class="info-row">
-                    <span class="info-label">Số điện thoại</span>
+                    <span class="info-label">So dien thoai</span>
                     <span class="info-value">${booking.user.phoneNumber}</span>
                 </div>
                 <div class="info-row">
@@ -248,23 +255,23 @@
             </div>
 
             <div class="info-section">
-                <h3>Thông tin chuyến đi</h3>
+                <h3>Thong tin chuyen di</h3>
                 <div class="info-row">
-                    <span class="info-label">Tuyến xe</span>
+                    <span class="info-label">Tuyen xe</span>
                     <span class="info-value">${booking.trip.route.origin} - ${booking.trip.route.destination}</span>
                 </div>
                 <div class="info-row">
-                    <span class="info-label">Thời gian xuất bến</span>
+                    <span class="info-label">Thoi gian xuat ben</span>
                     <span class="info-value-highlight">
                         <fmt:formatDate value="${booking.trip.departureTime}" pattern="HH:mm dd/MM/yyyy" />
                     </span>
                 </div>
                 <div class="info-row">
-                    <span class="info-label">Số lượng ghế</span>
-                    <span class="info-value">${booking.bookedSeats.size()} Ghế</span>
+                    <span class="info-label">So luong ghe</span>
+                    <span class="info-value">${booking.bookedSeats.size()} ghe</span>
                 </div>
                 <div class="info-row">
-                    <span class="info-label">Số ghế</span>
+                    <span class="info-label">So ghe</span>
                     <span class="info-value-highlight">
                         <c:forEach var="seat" items="${booking.bookedSeats}" varStatus="loop">
                             ${seat}${!loop.last ? ', ' : ''}
@@ -272,23 +279,23 @@
                     </span>
                 </div>
                 <div class="info-row">
-                    <span class="info-label">Loại xe</span>
+                    <span class="info-label">Loai xe</span>
                     <span class="info-value">${booking.trip.bus.busType}</span>
                 </div>
             </div>
 
             <div class="info-section">
-                <h3>Chi tiết giá</h3>
+                <h3>Chi tiet gia</h3>
                 <div class="info-row">
-                    <span class="info-label">Giá vé</span>
+                    <span class="info-label">Gia ve</span>
                     <span class="info-value">
-                        <fmt:formatNumber value="${booking.trip.price}" type="number" maxFractionDigits="0" />đ
+                        <fmt:formatNumber value="${booking.trip.price}" type="number" maxFractionDigits="0" />d
                     </span>
                 </div>
                 <div class="info-row">
-                    <span class="info-label" style="font-weight: 600; color: #333;">Tổng tiền</span>
+                    <span class="info-label" style="font-weight: 600; color: #333;">Tong tien</span>
                     <span class="info-value" style="font-weight: 700; font-size: 18px; color: var(--primary-color);">
-                        <fmt:formatNumber value="${booking.totalPrice}" type="number" maxFractionDigits="0" />đ
+                        <fmt:formatNumber value="${booking.totalPrice}" type="number" maxFractionDigits="0" />d
                     </span>
                 </div>
             </div>
@@ -305,13 +312,13 @@
         function submitPayment() {
             const form = document.getElementById('paymentForm');
             const method = form.querySelector('input[name="paymentMethod"]:checked').value;
-            
+
             if (method === 'vnpay') {
                 form.action = 'vnpay-checkout';
             } else if (method === 'stripe') {
                 form.action = 'stripe-checkout';
             }
-            
+
             form.submit();
         }
     </script>

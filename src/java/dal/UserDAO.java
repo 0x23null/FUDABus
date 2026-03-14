@@ -5,27 +5,30 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
+import java.util.UUID;
+import util.PasswordUtils;
 
 public class UserDAO extends DBContext {
 
     public User login(String username, String password) {
-        String sql = "SELECT * FROM Users WHERE username = ? AND password = ?";
+        String sql = "SELECT * FROM Users WHERE username = ?";
         try {
             PreparedStatement st = connection.prepareStatement(sql);
             st.setString(1, username);
-            st.setString(2, password); // Note: In production, use hashed passwords!
             ResultSet rs = st.executeQuery();
             if (rs.next()) {
-                User u = new User();
-                u.setUserID(rs.getInt("userID"));
-                u.setUsername(rs.getString("username"));
-                u.setPassword(rs.getString("password"));
-                u.setEmail(rs.getString("email"));
-                u.setFullName(rs.getString("fullName"));
-                u.setPhoneNumber(rs.getString("phoneNumber"));
-                u.setRole(rs.getString("role"));
-                u.setGoogleID(rs.getString("googleID"));
-                u.setCreatedAt(rs.getTimestamp("createdAt"));
+                String storedPassword = rs.getString("password");
+                if (!PasswordUtils.matches(password, storedPassword)) {
+                    return null;
+                }
+
+                if (PasswordUtils.needsRehash(storedPassword)) {
+                    upgradePasswordHash(rs.getInt("userID"), password);
+                    storedPassword = getPasswordByUserID(rs.getInt("userID"));
+                }
+
+                User u = mapUser(rs);
+                u.setPassword(storedPassword);
                 return u;
             }
         } catch (SQLException e) {
@@ -49,12 +52,27 @@ public class UserDAO extends DBContext {
         return null;
     }
 
+    public User checkEmailExist(String email) {
+        String sql = "SELECT * FROM Users WHERE email = ?";
+        try {
+            PreparedStatement st = connection.prepareStatement(sql);
+            st.setString(1, email);
+            ResultSet rs = st.executeQuery();
+            if (rs.next()) {
+                return mapUser(rs);
+            }
+        } catch (SQLException e) {
+            System.out.println(e);
+        }
+        return null;
+    }
+
     public void register(String username, String password, String email, String fullName, String phoneNumber) {
         String sql = "INSERT INTO Users (username, password, email, fullName, phoneNumber, role) VALUES (?, ?, ?, ?, ?, 'Customer')";
         try {
             PreparedStatement st = connection.prepareStatement(sql);
             st.setString(1, username);
-            st.setString(2, password);
+            st.setString(2, PasswordUtils.hashPassword(password));
             st.setString(3, email);
             st.setString(4, fullName);
             st.setString(5, phoneNumber);
@@ -94,21 +112,13 @@ public class UserDAO extends DBContext {
             st.setString(1, email);
             ResultSet rs = st.executeQuery();
             if (rs.next()) {
-                User u = new User();
-                u.setUserID(rs.getInt("userID"));
-                u.setUsername(rs.getString("username"));
-                u.setPassword(rs.getString("password"));
-                u.setEmail(rs.getString("email"));
-                u.setFullName(rs.getString("fullName"));
-                u.setPhoneNumber(rs.getString("phoneNumber"));
-                u.setRole(rs.getString("role"));
-                return u;
+                return mapUser(rs);
             } else {
                 // Register new user
                 String sqlInsert = "INSERT INTO Users (username, password, email, fullName, role) VALUES (?, ?, ?, ?, 'Customer')";
                 PreparedStatement st2 = connection.prepareStatement(sqlInsert, Statement.RETURN_GENERATED_KEYS);
                 st2.setString(1, googleUsername);
-                st2.setString(2, "GOOGLE_LOGIN_PASS"); // Dummy password
+                st2.setString(2, PasswordUtils.hashPassword(UUID.randomUUID().toString()));
                 st2.setString(3, email);
                 st2.setString(4, fullName);
                 st2.executeUpdate();
@@ -141,5 +151,38 @@ public class UserDAO extends DBContext {
         } catch (SQLException e) {
             System.out.println(e);
         }
+    }
+
+    private void upgradePasswordHash(int userID, String plainPassword) throws SQLException {
+        String sql = "UPDATE Users SET password = ? WHERE userID = ?";
+        try (PreparedStatement st = connection.prepareStatement(sql)) {
+            st.setString(1, PasswordUtils.hashPassword(plainPassword));
+            st.setInt(2, userID);
+            st.executeUpdate();
+        }
+    }
+
+    private String getPasswordByUserID(int userID) throws SQLException {
+        String sql = "SELECT password FROM Users WHERE userID = ?";
+        try (PreparedStatement st = connection.prepareStatement(sql)) {
+            st.setInt(1, userID);
+            try (ResultSet rs = st.executeQuery()) {
+                return rs.next() ? rs.getString("password") : null;
+            }
+        }
+    }
+
+    private User mapUser(ResultSet rs) throws SQLException {
+        User u = new User();
+        u.setUserID(rs.getInt("userID"));
+        u.setUsername(rs.getString("username"));
+        u.setPassword(rs.getString("password"));
+        u.setEmail(rs.getString("email"));
+        u.setFullName(rs.getString("fullName"));
+        u.setPhoneNumber(rs.getString("phoneNumber"));
+        u.setRole(rs.getString("role"));
+        u.setGoogleID(rs.getString("googleID"));
+        u.setCreatedAt(rs.getTimestamp("createdAt"));
+        return u;
     }
 }

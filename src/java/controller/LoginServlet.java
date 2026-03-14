@@ -16,6 +16,10 @@ public class LoginServlet extends HttpServlet {
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
+        String errorCode = request.getParameter("error");
+        if (errorCode != null && request.getAttribute("error") == null) {
+            request.setAttribute("error", mapErrorMessage(errorCode));
+        }
         request.getRequestDispatcher("views/auth/login.jsp").forward(request, response);
     }
 
@@ -43,8 +47,30 @@ public class LoginServlet extends HttpServlet {
                 }
             }
         } else {
-            request.setAttribute("error", "Invalid username or password!");
+            request.setAttribute("error", "Ten dang nhap hoac mat khau khong dung.");
             request.getRequestDispatcher("views/auth/login.jsp").forward(request, response);
         }
+    }
+
+    private String mapErrorMessage(String errorCode) {
+        if ("LoginRequired".equals(errorCode)) {
+            return "Vui long dang nhap de tiep tuc.";
+        }
+        if ("AccessDenied".equals(errorCode)) {
+            return "Ban khong co quyen truy cap trang nay.";
+        }
+        if ("GoogleAuthFailed".equals(errorCode)) {
+            return "Dang nhap Google that bai.";
+        }
+        if ("TokenExchangeFailed".equals(errorCode)) {
+            return "Khong the xac thuc Google. Vui long thu lai.";
+        }
+        if ("UserInfoFailed".equals(errorCode)) {
+            return "Khong the lay thong tin tai khoan Google.";
+        }
+        if ("DatabaseError".equals(errorCode)) {
+            return "He thong tam thoi gap loi. Vui long thu lai sau.";
+        }
+        return errorCode;
     }
 }
