@@ -4,10 +4,11 @@
             <div class="footer-grid">
                 <div class="footer-col">
                     <a href="#" class="logo" style="margin-bottom: 20px; display: inline-block;">
-                        <i class="fas fa-bus-alt"></i> Vivu
+                        <i class="fas fa-bus-alt"></i> FUDA Bus
                     </a>
                     <p style="color: var(--text-secondary); max-width: 300px;">
-                        Experience the future of bus travel with Vivu. Premium comfort, safety, and seamless booking for
+                        Experience the future of bus travel with FUDA Bus. Premium comfort, safety, and seamless booking
+                        for
                         your next journey across Vietnam.
                     </p>
                     <div style="display: flex; gap: 15px; margin-top: 20px;">
@@ -23,7 +24,7 @@
                 <div class="footer-col">
                     <h4>Discover</h4>
                     <ul>
-                        <li><a href="#">About Vivu</a></li>
+                        <li><a href="#">Về FUDA Bus</a></li>
                         <li><a href="#">Destinations</a></li>
                         <li><a href="#">Bus Fleet</a></li>
                         <li><a href="#">Blog</a></li>
@@ -43,10 +44,11 @@
                 <div class="footer-col">
                     <h4>Contact</h4>
                     <ul>
-                        <li><i class="fas fa-phone-alt" style="margin-right: 8px; font-size: 12px;"></i> 1900 6789</li>
-                        <li><i class="fas fa-envelope" style="margin-right: 8px; font-size: 12px;"></i> hello@vivu.vn
+                        <li><i class="fas fa-phone-alt" style="margin-right: 8px; font-size: 12px;"></i> 1900 3636</li>
+                        <li><i class="fas fa-envelope" style="margin-right: 8px; font-size: 12px;"></i>
+                            hello@vfudabus.vn
                         </li>
-                        <li><i class="fas fa-map-marker-alt" style="margin-right: 8px; font-size: 12px;"></i> Hanoi,
+                        <li><i class="fas fa-map-marker-alt" style="margin-right: 8px; font-size: 12px;"></i> Danang,
                             Vietnam</li>
                     </ul>
                 </div>
@@ -54,7 +56,7 @@
 
             <div
                 style="text-align: center; padding-top: 30px; border-top: 1px solid var(--border-color); color: var(--text-secondary); font-size: 14px;">
-                &copy; 2026 Vivu Transport Services. All rights reserved.
+                &copy; 2026 Fuda Bus Transport Services. All rights reserved.
             </div>
         </div>
     </footer>

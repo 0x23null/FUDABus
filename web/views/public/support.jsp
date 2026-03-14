@@ -4,7 +4,7 @@
         <html>
 
         <head>
-            <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+            <jsp:include page="../common/head.jsp"></jsp:include>
             <title>Support Center - BusTicket</title>
             <link rel="stylesheet" href="assets/css/style.css">
             <style>
@@ -135,8 +135,6 @@
                     }
                 }
             </style>
-            <!-- Add FontAwesome for icons -->
-            <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
         </head>
 
         <body class="fade-in">

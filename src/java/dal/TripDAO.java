@@ -57,6 +57,51 @@ public class TripDAO extends DBContext {
         return list;
     }
 
+    public List<Trip> getUpcomingTrips() {
+        List<Trip> list = new ArrayList<>();
+        String sql = "SELECT t.*, " +
+                "r.origin, r.destination, r.distance, r.duration, " +
+                "b.busNumber, b.busType, b.seatCapacity " +
+                "FROM Trips t " +
+                "JOIN Routes r ON t.routeID = r.routeID " +
+                "JOIN Buses b ON t.busID = b.busID " +
+                "WHERE t.departureTime > GETDATE() AND t.status = 'Scheduled' " +
+                "ORDER BY t.departureTime ASC";
+        try {
+            PreparedStatement st = connection.prepareStatement(sql);
+            ResultSet rs = st.executeQuery();
+            while (rs.next()) {
+                Trip t = new Trip(
+                        rs.getInt("tripID"),
+                        rs.getInt("routeID"),
+                        rs.getInt("busID"),
+                        rs.getTimestamp("departureTime"),
+                        rs.getTimestamp("arrivalTime"),
+                        rs.getDouble("price"),
+                        rs.getString("status"));
+
+                Route r = new Route();
+                r.setRouteID(rs.getInt("routeID"));
+                r.setOrigin(rs.getString("origin"));
+                r.setDestination(rs.getString("destination"));
+                r.setDuration(rs.getInt("duration"));
+                t.setRoute(r);
+
+                Bus b = new Bus();
+                b.setBusID(rs.getInt("busID"));
+                b.setBusNumber(rs.getString("busNumber"));
+                b.setBusType(rs.getString("busType"));
+                b.setSeatCapacity(rs.getInt("seatCapacity"));
+                t.setBus(b);
+
+                list.add(t);
+            }
+        } catch (SQLException e) {
+            System.out.println(e);
+        }
+        return list;
+    }
+
     public void insert(Trip t) {
         String sql = "INSERT INTO Trips (routeID, busID, departureTime, arrivalTime, price, status) VALUES (?, ?, ?, ?, ?, ?)";
         try {

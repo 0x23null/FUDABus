@@ -3,19 +3,18 @@ package util;
 import java.io.UnsupportedEncodingException;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
-import java.security.MessageDigest;
-import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
 public class VNPayUtils {
     public static final String vnp_PayUrl = "https://sandbox.vnpayment.vn/paymentv2/vpcpay.html";
-    public static final String vnp_Returnurl = "http://localhost:8080/BusTicketDev/vnpay-return";
-    public static final String vnp_TmnCode = "YOUR_VNP_TMN_CODE";
-    public static final String secretKey = "YOUR_VNP_HASH_SECRET";
+    public static final String vnp_Returnurl = ConfigUtils.VNPAY_RETURN_URL.isEmpty()
+            ? ConfigUtils.APP_BASE_URL + "/vnpay-return"
+            : ConfigUtils.VNPAY_RETURN_URL;
+    public static final String vnp_TmnCode = ConfigUtils.VNPAY_TMN_CODE;
+    public static final String secretKey = ConfigUtils.VNPAY_SECRET_KEY;
 
     public static String hashAllFields(Map<String, String> fields) {
         List<String> fieldNames = new ArrayList<>(fields.keySet());

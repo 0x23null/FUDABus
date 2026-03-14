@@ -5,7 +5,7 @@
             <html>
 
             <head>
-                <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+                <jsp:include page="../common/head.jsp"></jsp:include>
                 <title>Manage Trips - BusTicket</title>
                 <link rel="stylesheet" href="${pageContext.request.contextPath}/assets/css/style.css">
                 <style>

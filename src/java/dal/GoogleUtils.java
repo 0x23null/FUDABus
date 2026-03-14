@@ -6,15 +6,15 @@ import java.io.InputStreamReader;
 import java.io.OutputStream;
 import java.net.HttpURLConnection;
 import java.net.URL;
-import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 import model.User;
+import util.ConfigUtils;
 
 public class GoogleUtils {
 
-    public static final String GOOGLE_CLIENT_ID = "YOUR_GOOGLE_CLIENT_ID";
-    public static final String GOOGLE_CLIENT_SECRET = "YOUR_GOOGLE_CLIENT_SECRET";
-    public static final String GOOGLE_REDIRECT_URI = "YOUR_GOOGLE_REDIRECT_URI";
+    public static final String GOOGLE_CLIENT_ID = ConfigUtils.GOOGLE_CLIENT_ID;
+    public static final String GOOGLE_CLIENT_SECRET = ConfigUtils.GOOGLE_CLIENT_SECRET;
+    public static final String GOOGLE_REDIRECT_URI = ConfigUtils.GOOGLE_REDIRECT_URI;
     // END CONSTANTS
 
     public static final String GOOGLE_LINK_GET_TOKEN = "https://oauth2.googleapis.com/token";

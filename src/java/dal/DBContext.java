@@ -9,15 +9,16 @@ public class DBContext {
 
     public DBContext() {
         try {
-            // Read configurations from Environment Variables (AWS Ready) or fallback to Local constants
             String host = util.ConfigUtils.DB_HOST;
             String port = util.ConfigUtils.DB_PORT;
             String dbName = util.ConfigUtils.DB_NAME;
             String user = util.ConfigUtils.DB_USER;
             String password = util.ConfigUtils.DB_PASS;
-            
-            String url = "jdbc:sqlserver://" + host + ":" + port + ";databaseName=" + dbName + ";encrypt=true;trustServerCertificate=true;";
 
+            String url = "jdbc:sqlserver://" + host + ":" + port
+                    + ";databaseName=" + dbName
+                    + ";encrypt=" + util.ConfigUtils.DB_ENCRYPT
+                    + ";trustServerCertificate=" + util.ConfigUtils.DB_TRUST_SERVER_CERTIFICATE + ";";
             Class.forName("com.microsoft.sqlserver.jdbc.SQLServerDriver");
             connection = DriverManager.getConnection(url, user, password);
         } catch (ClassNotFoundException | SQLException ex) {
@@ -25,12 +26,12 @@ public class DBContext {
         }
     }
 
-//    public static void main(String[] args) {
-//        DBContext db = new DBContext();
-//        if (db.connection != null) {
-//            System.out.println("Connection successful!");
-//        } else {
-//            System.out.println("Connection failed!");
-//        }
-//    }
+    public static void main(String[] args) {
+        DBContext db = new DBContext();
+        if (db.connection != null) {
+            System.out.println("Connection successful!");
+        } else {
+            System.out.println("Connection failed!");
+        }
+    }
 }

@@ -5,7 +5,7 @@
             <html lang="vi">
 
             <head>
-                <meta charset="UTF-8">
+                <jsp:include page="../common/head.jsp"></jsp:include>
                 <title>Chọn Ghế - Vivu</title>
                 <link rel="stylesheet" href="assets/css/style.css">
                 <style>

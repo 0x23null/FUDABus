@@ -5,10 +5,9 @@
             <html>
 
             <head>
-                <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+                <jsp:include page="../common/head.jsp"></jsp:include>
                 <title>Manage Bookings - Admin</title>
                 <link rel="stylesheet" href="${pageContext.request.contextPath}/assets/css/style.css">
-                <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
             </head>
 
             <body class="fade-in" style="background: #fbfbfd;">

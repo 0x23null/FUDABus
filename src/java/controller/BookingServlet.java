@@ -9,6 +9,7 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
+import java.sql.Timestamp;
 import java.util.ArrayList;
 import java.util.List;
 import jakarta.servlet.ServletException;
@@ -65,6 +66,12 @@ public class BookingServlet extends HttpServlet {
             return;
         }
 
+        // Không cho đặt vé chuyến đã qua ngày
+        if (trip.getDepartureTime().before(new Timestamp(System.currentTimeMillis()))) {
+            response.sendRedirect("home?error=TripExpired");
+            return;
+        }
+
         List<String> bookedSeats = getBookedSeats(tripID);
         request.setAttribute("trip", trip);
         request.setAttribute("bookedSeats", bookedSeats);
@@ -89,6 +96,14 @@ public class BookingServlet extends HttpServlet {
         User user = (User) session.getAttribute("user");
 
         int tripID = Integer.parseInt(request.getParameter("tripID"));
+
+        // Server-side: kiểm tra chuyến đã qua ngày
+        TripDAO tripDao = new TripDAO();
+        Trip tripCheck = tripDao.getTripByID(tripID);
+        if (tripCheck == null || tripCheck.getDepartureTime().before(new Timestamp(System.currentTimeMillis()))) {
+            response.sendRedirect("home?error=TripExpired");
+            return;
+        }
         String selectedSeats = request.getParameter("selectedSeats");
         String returnTripIDStr = request.getParameter("returnTripID");
         String returnSeatsStr = request.getParameter("returnSeats");

@@ -5,7 +5,7 @@
             <html lang="vi">
 
             <head>
-                <meta charset="UTF-8">
+                <jsp:include page="../common/head.jsp"></jsp:include>
                 <title>Chọn chuyến xe - Vivu</title>
                 <link rel="stylesheet" href="assets/css/style.css">
                 <style>
@@ -59,6 +59,25 @@
                         transform: translateY(-2px);
                         box-shadow: 0 8px 20px rgba(0, 0, 0, 0.08);
                         border-color: #c7d2fe;
+                    }
+
+                    .trip-card.past-trip {
+                        opacity: 0.45;
+                        pointer-events: none;
+                        position: relative;
+                    }
+
+                    .trip-card.past-trip::after {
+                        content: 'Đã qua';
+                        position: absolute;
+                        top: 10px;
+                        right: 14px;
+                        background: #ef4444;
+                        color: white;
+                        font-size: 11px;
+                        font-weight: 700;
+                        padding: 3px 10px;
+                        border-radius: 12px;
                     }
 
                     .trip-card.selected {
@@ -216,11 +235,15 @@
                     </c:if>
                     <c:forEach items="${trips}" var="t">
                         <div class="trip-card outbound-card" data-id="${t.tripID}" data-price="${t.price}"
+                            data-departure="<fmt:formatDate value='${t.departureTime}' pattern='yyyy-MM-dd\'T\'HH:mm:ss' />"
                             onclick="selectTrip('outbound', this)">
                             <div style="display: flex; align-items: center; gap: 40px; flex: 2;">
                                 <div style="text-align: center;">
                                     <div class="trip-time">
                                         <fmt:formatDate value="${t.departureTime}" pattern="HH:mm" />
+                                    </div>
+                                    <div style="font-size: 12px; color: var(--primary-color); font-weight: 600;">
+                                        <fmt:formatDate value="${t.departureTime}" pattern="dd/MM/yyyy" />
                                     </div>
                                     <div style="font-size: 13px; color: var(--text-secondary);">${t.route.origin}</div>
                                 </div>
@@ -232,13 +255,16 @@
                                     <div class="trip-time">
                                         <fmt:formatDate value="${t.arrivalTime}" pattern="HH:mm" />
                                     </div>
+                                    <div style="font-size: 12px; color: var(--primary-color); font-weight: 600;">
+                                        <fmt:formatDate value="${t.arrivalTime}" pattern="dd/MM/yyyy" />
+                                    </div>
                                     <div style="font-size: 13px; color: var(--text-secondary);">${t.route.destination}
                                     </div>
                                 </div>
                             </div>
                             <div style="flex: 1; text-align: left; padding-left: 20px;">
                                 <div style="font-weight: 600; font-size: 15px;">${t.bus.busType}</div>
-                                <div style="color: var(--text-secondary); font-size: 13px;">Còn 20 chỗ trống</div>
+                                <div style="color: var(--text-secondary); font-size: 13px;">${t.bus.seatCapacity} chỗ</div>
                             </div>
                             <div style="flex: 1; text-align: right;">
                                 <div class="trip-price">
@@ -256,11 +282,15 @@
                         </h3>
                         <c:forEach items="${returnTrips}" var="t">
                             <div class="trip-card return-card" data-id="${t.tripID}" data-price="${t.price}"
+                                data-departure="<fmt:formatDate value='${t.departureTime}' pattern='yyyy-MM-dd\'T\'HH:mm:ss' />"
                                 onclick="selectTrip('return', this)">
                                 <div style="display: flex; align-items: center; gap: 40px; flex: 2;">
                                     <div style="text-align: center;">
                                         <div class="trip-time">
                                             <fmt:formatDate value="${t.departureTime}" pattern="HH:mm" />
+                                        </div>
+                                        <div style="font-size: 12px; color: var(--primary-color); font-weight: 600;">
+                                            <fmt:formatDate value="${t.departureTime}" pattern="dd/MM/yyyy" />
                                         </div>
                                         <div style="font-size: 13px; color: var(--text-secondary);">${t.route.origin}
                                         </div>
@@ -273,13 +303,16 @@
                                         <div class="trip-time">
                                             <fmt:formatDate value="${t.arrivalTime}" pattern="HH:mm" />
                                         </div>
+                                        <div style="font-size: 12px; color: var(--primary-color); font-weight: 600;">
+                                            <fmt:formatDate value="${t.arrivalTime}" pattern="dd/MM/yyyy" />
+                                        </div>
                                         <div style="font-size: 13px; color: var(--text-secondary);">
                                             ${t.route.destination}</div>
                                     </div>
                                 </div>
                                 <div style="flex: 1; text-align: left; padding-left: 20px;">
                                     <div style="font-weight: 600; font-size: 15px;">${t.bus.busType}</div>
-                                    <div style="color: var(--text-secondary); font-size: 13px;">Còn 20 chỗ trống</div>
+                                    <div style="color: var(--text-secondary); font-size: 13px;">${t.bus.seatCapacity} chỗ</div>
                                 </div>
                                 <div style="flex: 1; text-align: right;">
                                     <div class="trip-price">
@@ -324,7 +357,23 @@
                     let isRoundTrip = ${ not empty returnTrips };
                     let ticketCount = ${ ticketCount != null ? ticketCount : 1};
 
+                    // Mark past trips on page load
+                    document.addEventListener('DOMContentLoaded', function() {
+                        const now = new Date();
+                        document.querySelectorAll('.trip-card').forEach(function(card) {
+                            const dep = card.getAttribute('data-departure');
+                            if (dep) {
+                                const depDate = new Date(dep);
+                                if (depDate < now) {
+                                    card.classList.add('past-trip');
+                                }
+                            }
+                        });
+                    });
+
                     function selectTrip(type, element) {
+                        if (element.classList.contains('past-trip')) return;
+
                         const id = element.getAttribute('data-id');
                         const price = parseFloat(element.getAttribute('data-price'));
                         const time = element.querySelector('.trip-time').innerText;

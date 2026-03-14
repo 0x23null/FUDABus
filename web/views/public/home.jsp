@@ -1,10 +1,11 @@
 <%@page contentType="text/html" pageEncoding="UTF-8" %>
+    <%@taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
     <!DOCTYPE html>
     <html lang="en">
 
     <head>
-        <meta charset="UTF-8">
-        <title>Vivu - Where Every Ride Feels Magical</title>
+        <jsp:include page="../common/head.jsp"></jsp:include>
+        <title>FUDA Bus</title>
         <link rel="stylesheet" href="assets/css/style.css">
         <!-- Libs CSS -->
         <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/choices.js/public/assets/styles/choices.min.css" />
@@ -380,8 +381,8 @@
         <div class="hero-wrapper">
             <div class="hero-section">
                 <div class="hero-content">
-                    <div class="hero-label">BUS YOUR TRAVEL JOURNEY</div>
-                    <h1 class="hero-title">Where Every Bus Ride Feels <span class="highlight-magical">Magical!</span>
+                    <div class="hero-label">BUS NGAY HÀNH TRÌNH</div>
+                    <h1 class="hero-title">Vé xe trong tay <span class="highlight-magical">Đi ngay hôm nay!</span>
                     </h1>
                 </div>
             </div>
@@ -389,6 +390,12 @@
 
         <!-- Search Section -->
         <div class="search-container" id="search-section">
+            <c:if test="${param.error == 'TripExpired'}">
+                <div style="max-width: 1000px; margin: 0 auto 20px; background: #fce8e6; color: #d93025; padding: 16px 24px; border-radius: 12px; font-weight: 500; display: flex; align-items: center; gap: 12px; box-shadow: 0 2px 8px rgba(217, 48, 37, 0.1);">
+                    <i class="fas fa-exclamation-triangle" style="font-size: 20px;"></i>
+                    <span>Chuyến xe này đã qua ngày khởi hành. Vui lòng chọn chuyến xe khác.</span>
+                </div>
+            </c:if>
             <form action="search" method="GET" class="search-box fade-in">
                 <!-- Top Row Tabs -->
                 <div class="search-top-row">

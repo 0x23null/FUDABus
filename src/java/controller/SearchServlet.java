@@ -42,7 +42,7 @@ public class SearchServlet extends HttpServlet {
         // Lấy chuyến đi
         List<Trip> outboundTrips = dao.searchTrips(origin, destination, date);
         if (outboundTrips.isEmpty()) {
-            outboundTrips = dao.getAll(); // Gợi ý nếu không có chuyến
+            outboundTrips = dao.getUpcomingTrips(); // Gợi ý chỉ chuyến tương lai
             request.setAttribute("isSuggestion", true);
         }
         request.setAttribute("trips", outboundTrips);
