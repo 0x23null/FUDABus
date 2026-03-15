@@ -1,106 +1,108 @@
 <%@page contentType="text/html" pageEncoding="UTF-8" %>
-    <%@taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
-        <%@taglib prefix="fmt" uri="http://java.sun.com/jsp/jstl/fmt" %>
-            <!DOCTYPE html>
-            <html>
+<%@taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
+<%@taglib prefix="fmt" uri="http://java.sun.com/jsp/jstl/fmt" %>
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <jsp:include page="../common/head.jsp"></jsp:include>
+    <title>Quản lý đặt vé - FUDA Admin</title>
+    <link rel="stylesheet" href="${pageContext.request.contextPath}/assets/css/style.css">
+    <link rel="stylesheet" href="${pageContext.request.contextPath}/assets/css/admin.css">
+</head>
+<body class="fade-in admin-page">
+    <jsp:include page="common/admin-header.jsp"></jsp:include>
 
-            <head>
-                <jsp:include page="../common/head.jsp"></jsp:include>
-                <title>Manage Bookings - Admin</title>
-                <link rel="stylesheet" href="${pageContext.request.contextPath}/assets/css/style.css">
-            </head>
+    <main class="admin-shell">
+        <section class="admin-hero">
+            <div>
+                <span class="admin-eyebrow"><i class="fas fa-ticket-alt"></i> Đơn đặt vé</span>
+                <h1>Quản lý booking và thanh toán</h1>
+                <p>Theo dõi trạng thái đơn, hành khách và hành trình khách đã chọn để nắm nhanh tình hình bán vé của hệ thống.</p>
+            </div>
+            <a href="${pageContext.request.contextPath}/admin" class="btn btn-secondary">Về tổng quan</a>
+        </section>
 
-            <body class="fade-in" style="background: #fbfbfd;">
-
-                <nav class="main-header" style="background: white; position: sticky; top: 0; z-index: 100;">
-                    <div class="container header-content">
-                        <a href="${pageContext.request.contextPath}/admin" class="logo">BusTicket Admin</a>
-                        <div class="auth-buttons">
-                            <a href="${pageContext.request.contextPath}/logout" class="btn btn-secondary">Logout</a>
-                        </div>
-                    </div>
-                </nav>
-
-                <div class="container" style="padding-top: 40px;">
-                    <div
-                        style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 30px;">
-                        <h2>All Bookings</h2>
-                        <a href="${pageContext.request.contextPath}/admin" class="btn btn-secondary">&larr; Back to
-                            Dashboard</a>
-                    </div>
-
-                    <div
-                        style="background: white; border-radius: 20px; box-shadow: var(--shadow-sm); overflow: hidden;">
-                        <table style="width: 100%; border-collapse: collapse;">
-                            <thead style="background: #f5f5f7; border-bottom: 1px solid #e1e1e1;">
-                                <tr>
-                                    <th
-                                        style="padding: 15px 20px; text-align: left; font-size: 14px; color: var(--text-secondary);">
-                                        ID / Ticket Code</th>
-                                    <th
-                                        style="padding: 15px 20px; text-align: left; font-size: 14px; color: var(--text-secondary);">
-                                        Customer</th>
-                                    <th
-                                        style="padding: 15px 20px; text-align: left; font-size: 14px; color: var(--text-secondary);">
-                                        Trip</th>
-                                    <th
-                                        style="padding: 15px 20px; text-align: left; font-size: 14px; color: var(--text-secondary);">
-                                        Date</th>
-                                    <th
-                                        style="padding: 15px 20px; text-align: left; font-size: 14px; color: var(--text-secondary);">
-                                        Total</th>
-                                    <th
-                                        style="padding: 15px 20px; text-align: left; font-size: 14px; color: var(--text-secondary);">
-                                        Status</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                <c:forEach items="${bookings}" var="b">
-                                    <tr style="border-bottom: 1px solid #f0f0f0;">
-                                        <td style="padding: 15px 20px; font-weight: 500;">
-                                            <div style="font-family: monospace;">${not empty b.ticketCode ? b.ticketCode
-                                                : b.bookingID}</div>
-                                        </td>
-                                        <td style="padding: 15px 20px;">
-                                            <div style="font-weight: 500;">${b.user.fullName}</div>
-                                        </td>
-                                        <td style="padding: 15px 20px;">
-                                            <div>${b.trip.route.origin} &rarr; ${b.trip.route.destination}</div>
-                                            <div
-                                                style="font-size: 13px; color: var(--text-secondary); margin-top: 4px;">
-                                                <fmt:formatDate value="${b.trip.departureTime}"
-                                                    pattern="dd/MM/yyyy HH:mm" />
-                                            </div>
-                                        </td>
-                                        <td style="padding: 15px 20px;">
-                                            <fmt:formatDate value="${b.bookingDate}" pattern="dd MMM, HH:mm" />
-                                        </td>
-                                        <td style="padding: 15px 20px;">
-                                            <fmt:formatNumber value="${b.totalPrice}" type="number"
-                                                maxFractionDigits="0" /> VNĐ
-                                        </td>
-                                        <td style="padding: 15px 20px;">
-                                            <span
-                                                style="display: inline-block; padding: 4px 12px; border-radius: 20px; font-size: 12px; font-weight: 500;
-                                      background: ${b.status == 'Paid' ? '#d4edda' : (b.status == 'Cancelled' ? '#f8d7da' : '#fff3cd')};
-                                      color: ${b.status == 'Paid' ? '#155724' : (b.status == 'Cancelled' ? '#721c24' : '#856404')};">
-                                                ${b.status}
-                                            </span>
-                                        </td>
-                                    </tr>
-                                </c:forEach>
-                                <c:if test="${empty bookings}">
-                                    <tr>
-                                        <td colspan="6"
-                                            style="padding: 40px; text-align: center; color: var(--text-secondary);">
-                                            No bookings found.
-                                        </td>
-                                    </tr>
-                                </c:if>
-                            </tbody>
-                        </table>
-                    </div>
+        <section class="admin-panel">
+            <div class="admin-panel-head">
+                <div>
+                    <span class="admin-eyebrow"><i class="fas fa-list"></i> Danh sách</span>
+                    <h2>Tất cả đơn đặt vé</h2>
+                    <p>${empty bookings ? 'Chưa có booking nào trong hệ thống.' : 'Theo dõi toàn bộ đơn đặt vé và trạng thái thanh toán hiện tại.'}</p>
                 </div>
-            </body>
-
-            </html>
+            </div>
+            <div class="admin-panel-body">
+                <div class="table-shell">
+                    <table class="admin-table">
+                        <thead>
+                            <tr>
+                                <th>Mã đơn</th>
+                                <th>Khách hàng</th>
+                                <th>Hành trình</th>
+                                <th>Ngày đặt</th>
+                                <th>Tổng tiền</th>
+                                <th>Trạng thái</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <c:forEach items="${bookings}" var="b">
+                                <tr>
+                                    <td>
+                                        <span class="table-title mono">${not empty b.ticketCode ? b.ticketCode : b.bookingID}</span>
+                                        <span class="table-subtitle">Booking #${b.bookingID}</span>
+                                    </td>
+                                    <td>
+                                        <span class="table-title">${empty b.user.fullName ? 'Khách vãng lai' : b.user.fullName}</span>
+                                        <span class="table-subtitle">
+                                            ${empty b.user.phoneNumber ? 'Chưa có số điện thoại' : b.user.phoneNumber}
+                                            <c:if test="${b.totalPassengerCount > 0}">
+                                                • ${b.totalPassengerCount} hành khách
+                                            </c:if>
+                                        </span>
+                                    </td>
+                                    <td>
+                                        <c:choose>
+                                            <c:when test="${not empty b.outboundSegment}">
+                                                <span class="table-title">${b.outboundSegment.trip.route.origin} → ${b.outboundSegment.trip.route.destination}</span>
+                                                <span class="table-subtitle">
+                                                    <fmt:formatDate value="${b.outboundSegment.trip.departureTime}" pattern="dd/MM/yyyy HH:mm" />
+                                                    <c:if test="${not empty b.returnSegment}">
+                                                        • Khứ hồi
+                                                    </c:if>
+                                                </span>
+                                            </c:when>
+                                            <c:otherwise>
+                                                <span class="table-title">${b.trip.route.origin} → ${b.trip.route.destination}</span>
+                                                <span class="table-subtitle">
+                                                    <fmt:formatDate value="${b.trip.departureTime}" pattern="dd/MM/yyyy HH:mm" />
+                                                </span>
+                                            </c:otherwise>
+                                        </c:choose>
+                                    </td>
+                                    <td>
+                                        <span class="table-title"><fmt:formatDate value="${b.bookingDate}" pattern="dd/MM/yyyy" /></span>
+                                        <span class="table-subtitle"><fmt:formatDate value="${b.bookingDate}" pattern="HH:mm" /></span>
+                                    </td>
+                                    <td>
+                                        <span class="table-title"><fmt:formatNumber value="${b.totalPrice}" type="number" maxFractionDigits="0" /> đ</span>
+                                    </td>
+                                    <td>
+                                        <span class="status-badge ${b.status == 'Paid' ? 'status-paid' : (b.status == 'Cancelled' ? 'status-cancelled' : 'status-pending')}">${b.status}</span>
+                                    </td>
+                                </tr>
+                            </c:forEach>
+                            <c:if test="${empty bookings}">
+                                <tr>
+                                    <td colspan="6" class="empty-state">
+                                        <i class="fas fa-receipt"></i>
+                                        <div>Chưa có booking nào để hiển thị.</div>
+                                    </td>
+                                </tr>
+                            </c:if>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </section>
+    </main>
+</body>
+</html>

@@ -6,7 +6,6 @@ import model.Trip;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.sql.Timestamp;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -14,42 +13,18 @@ public class TripDAO extends DBContext {
 
     public List<Trip> getAll() {
         List<Trip> list = new ArrayList<>();
-        String sql = "SELECT t.*, " +
-                "r.origin, r.destination, r.distance, r.duration, " +
-                "b.busNumber, b.busType, b.seatCapacity " +
-                "FROM Trips t " +
-                "JOIN Routes r ON t.routeID = r.routeID " +
-                "JOIN Buses b ON t.busID = b.busID " +
-                "ORDER BY t.departureTime DESC";
+        String sql = "SELECT t.*, "
+                + "r.origin, r.destination, r.distance, r.duration, "
+                + "b.busNumber, b.busType, b.seatCapacity "
+                + "FROM Trips t "
+                + "JOIN Routes r ON t.routeID = r.routeID "
+                + "JOIN Buses b ON t.busID = b.busID "
+                + "ORDER BY t.departureTime DESC";
         try {
             PreparedStatement st = connection.prepareStatement(sql);
             ResultSet rs = st.executeQuery();
             while (rs.next()) {
-                Trip t = new Trip(
-                        rs.getInt("tripID"),
-                        rs.getInt("routeID"),
-                        rs.getInt("busID"),
-                        rs.getTimestamp("departureTime"),
-                        rs.getTimestamp("arrivalTime"),
-                        rs.getDouble("price"),
-                        rs.getString("status"));
-
-                // Map Navigation Objects
-                Route r = new Route();
-                r.setRouteID(rs.getInt("routeID"));
-                r.setOrigin(rs.getString("origin"));
-                r.setDestination(rs.getString("destination"));
-                r.setDuration(rs.getInt("duration"));
-                t.setRoute(r);
-
-                Bus b = new Bus();
-                b.setBusID(rs.getInt("busID"));
-                b.setBusNumber(rs.getString("busNumber"));
-                b.setBusType(rs.getString("busType"));
-                b.setSeatCapacity(rs.getInt("seatCapacity"));
-                t.setBus(b);
-
-                list.add(t);
+                list.add(mapTrip(rs));
             }
         } catch (SQLException e) {
             System.out.println(e);
@@ -59,42 +34,19 @@ public class TripDAO extends DBContext {
 
     public List<Trip> getUpcomingTrips() {
         List<Trip> list = new ArrayList<>();
-        String sql = "SELECT t.*, " +
-                "r.origin, r.destination, r.distance, r.duration, " +
-                "b.busNumber, b.busType, b.seatCapacity " +
-                "FROM Trips t " +
-                "JOIN Routes r ON t.routeID = r.routeID " +
-                "JOIN Buses b ON t.busID = b.busID " +
-                "WHERE t.departureTime > GETDATE() AND t.status = 'Scheduled' " +
-                "ORDER BY t.departureTime ASC";
+        String sql = "SELECT t.*, "
+                + "r.origin, r.destination, r.distance, r.duration, "
+                + "b.busNumber, b.busType, b.seatCapacity "
+                + "FROM Trips t "
+                + "JOIN Routes r ON t.routeID = r.routeID "
+                + "JOIN Buses b ON t.busID = b.busID "
+                + "WHERE t.departureTime > GETDATE() AND t.status = 'Scheduled' "
+                + "ORDER BY t.departureTime ASC";
         try {
             PreparedStatement st = connection.prepareStatement(sql);
             ResultSet rs = st.executeQuery();
             while (rs.next()) {
-                Trip t = new Trip(
-                        rs.getInt("tripID"),
-                        rs.getInt("routeID"),
-                        rs.getInt("busID"),
-                        rs.getTimestamp("departureTime"),
-                        rs.getTimestamp("arrivalTime"),
-                        rs.getDouble("price"),
-                        rs.getString("status"));
-
-                Route r = new Route();
-                r.setRouteID(rs.getInt("routeID"));
-                r.setOrigin(rs.getString("origin"));
-                r.setDestination(rs.getString("destination"));
-                r.setDuration(rs.getInt("duration"));
-                t.setRoute(r);
-
-                Bus b = new Bus();
-                b.setBusID(rs.getInt("busID"));
-                b.setBusNumber(rs.getString("busNumber"));
-                b.setBusType(rs.getString("busType"));
-                b.setSeatCapacity(rs.getInt("seatCapacity"));
-                t.setBus(b);
-
-                list.add(t);
+                list.add(mapTrip(rs));
             }
         } catch (SQLException e) {
             System.out.println(e);
@@ -129,47 +81,22 @@ public class TripDAO extends DBContext {
         }
     }
 
-    // For Search Functionality later
     public List<Trip> searchTrips(String origin, String destination, String date) {
         List<Trip> list = new ArrayList<>();
         String sql = "SELECT t.*, r.origin, r.destination, r.distance, r.duration, b.busNumber, b.busType, b.seatCapacity "
-                +
-                "FROM Trips t " +
-                "JOIN Routes r ON t.routeID = r.routeID " +
-                "JOIN Buses b ON t.busID = b.busID " +
-                "WHERE r.origin LIKE ? AND r.destination LIKE ? " +
-                "AND CONVERT(DATE, t.departureTime) = ?";
+                + "FROM Trips t "
+                + "JOIN Routes r ON t.routeID = r.routeID "
+                + "JOIN Buses b ON t.busID = b.busID "
+                + "WHERE r.origin LIKE ? AND r.destination LIKE ? "
+                + "AND CONVERT(DATE, t.departureTime) = ?";
         try {
             PreparedStatement st = connection.prepareStatement(sql);
             st.setString(1, "%" + origin + "%");
             st.setString(2, "%" + destination + "%");
-            st.setString(3, date); // Expected format YYYY-MM-DD
+            st.setString(3, date);
             ResultSet rs = st.executeQuery();
             while (rs.next()) {
-                Trip t = new Trip(
-                        rs.getInt("tripID"),
-                        rs.getInt("routeID"),
-                        rs.getInt("busID"),
-                        rs.getTimestamp("departureTime"),
-                        rs.getTimestamp("arrivalTime"),
-                        rs.getDouble("price"),
-                        rs.getString("status"));
-
-                Route r = new Route();
-                r.setRouteID(rs.getInt("routeID"));
-                r.setOrigin(rs.getString("origin"));
-                r.setDestination(rs.getString("destination"));
-                r.setDuration(rs.getInt("duration"));
-                t.setRoute(r);
-
-                Bus b = new Bus();
-                b.setBusID(rs.getInt("busID"));
-                b.setBusNumber(rs.getString("busNumber"));
-                b.setBusType(rs.getString("busType"));
-                b.setSeatCapacity(rs.getInt("seatCapacity"));
-                t.setBus(b);
-
-                list.add(t);
+                list.add(mapTrip(rs));
             }
         } catch (SQLException e) {
             System.out.println(e);
@@ -179,41 +106,67 @@ public class TripDAO extends DBContext {
 
     public Trip getTripByID(int id) {
         String sql = "SELECT t.*, r.origin, r.destination, r.distance, r.duration, b.busNumber, b.busType, b.seatCapacity "
-                +
-                "FROM Trips t " +
-                "JOIN Routes r ON t.routeID = r.routeID " +
-                "JOIN Buses b ON t.busID = b.busID " +
-                "WHERE t.tripID = ?";
+                + "FROM Trips t "
+                + "JOIN Routes r ON t.routeID = r.routeID "
+                + "JOIN Buses b ON t.busID = b.busID "
+                + "WHERE t.tripID = ?";
         try {
             PreparedStatement st = connection.prepareStatement(sql);
             st.setInt(1, id);
             ResultSet rs = st.executeQuery();
             if (rs.next()) {
-                Trip t = new Trip(
-                        rs.getInt("tripID"),
-                        rs.getInt("routeID"),
-                        rs.getInt("busID"),
-                        rs.getTimestamp("departureTime"),
-                        rs.getTimestamp("arrivalTime"),
-                        rs.getDouble("price"),
-                        rs.getString("status"));
-                Route r = new Route();
-                r.setRouteID(rs.getInt("routeID"));
-                r.setOrigin(rs.getString("origin"));
-                r.setDestination(rs.getString("destination"));
-                r.setDuration(rs.getInt("duration"));
-                t.setRoute(r);
-                Bus b = new Bus();
-                b.setBusID(rs.getInt("busID"));
-                b.setBusNumber(rs.getString("busNumber"));
-                b.setBusType(rs.getString("busType"));
-                b.setSeatCapacity(rs.getInt("seatCapacity"));
-                t.setBus(b);
-                return t;
+                return mapTrip(rs);
             }
         } catch (SQLException e) {
             System.out.println(e);
         }
         return null;
+    }
+
+    public List<Route> getAllRoutes() {
+        List<Route> routes = new ArrayList<>();
+        String sql = "SELECT routeID, origin, destination, duration, description FROM Routes ORDER BY origin, destination";
+        try {
+            PreparedStatement st = connection.prepareStatement(sql);
+            ResultSet rs = st.executeQuery();
+            while (rs.next()) {
+                Route route = new Route();
+                route.setRouteID(rs.getInt("routeID"));
+                route.setOrigin(rs.getString("origin"));
+                route.setDestination(rs.getString("destination"));
+                route.setDuration(rs.getInt("duration"));
+                route.setDescription(rs.getString("description"));
+                routes.add(route);
+            }
+        } catch (SQLException e) {
+            System.out.println(e);
+        }
+        return routes;
+    }
+
+    private Trip mapTrip(ResultSet rs) throws SQLException {
+        Trip trip = new Trip(
+                rs.getInt("tripID"),
+                rs.getInt("routeID"),
+                rs.getInt("busID"),
+                rs.getTimestamp("departureTime"),
+                rs.getTimestamp("arrivalTime"),
+                rs.getDouble("price"),
+                rs.getString("status"));
+
+        Route route = new Route();
+        route.setRouteID(rs.getInt("routeID"));
+        route.setOrigin(rs.getString("origin"));
+        route.setDestination(rs.getString("destination"));
+        route.setDuration(rs.getInt("duration"));
+        trip.setRoute(route);
+
+        Bus bus = new Bus();
+        bus.setBusID(rs.getInt("busID"));
+        bus.setBusNumber(rs.getString("busNumber"));
+        bus.setBusType(rs.getString("busType"));
+        bus.setSeatCapacity(rs.getInt("seatCapacity"));
+        trip.setBus(bus);
+        return trip;
     }
 }

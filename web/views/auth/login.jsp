@@ -4,7 +4,7 @@
 <html lang="vi">
 <head>
     <jsp:include page="../common/head.jsp"></jsp:include>
-    <title>Đăng nhập - FUDA Bus</title>
+    <title>&#272;&#259;ng nh&#7853;p - FUDA Bus</title>
     <link rel="stylesheet" href="assets/css/style.css">
     <style>
         .auth-container {
@@ -71,21 +71,21 @@
     <div class="auth-container">
         <div class="glass-panel auth-card">
             <a href="${pageContext.request.contextPath}/" style="display: block; margin-bottom: 18px; font-weight: 800; font-size: 20px;" class="text-gradient">FUDA Bus</a>
-            <h2 class="auth-title">Đăng nhập tài khoản</h2>
-            <p class="auth-subtitle">Tiếp tục hành trình của bạn với vé đã đặt, lịch sử chuyến đi và thanh toán nhanh hơn.</p>
+            <h2 class="auth-title">&#272;&#259;ng nh&#7853;p t&#224;i kho&#7843;n</h2>
+            <p class="auth-subtitle">Ti&#7871;p t&#7909;c h&#224;nh tr&#236;nh c&#7911;a b&#7841;n v&#7899;i v&#233; &#273;&#227; &#273;&#7863;t, l&#7883;ch s&#7917; chuy&#7871;n &#273;i v&#224; thanh to&#225;n nhanh h&#417;n.</p>
 
             <c:if test="${not empty error}">
                 <div class="error-msg">${error}</div>
             </c:if>
 
             <form action="login" method="POST">
-                <input type="text" name="username" class="form-control" placeholder="Tên đăng nhập" required>
-                <input type="password" name="password" class="form-control" placeholder="Mật khẩu" required>
-                <button type="submit" class="btn-submit">Đăng nhập</button>
+                <input type="text" name="username" class="form-control" placeholder="T&#234;n &#273;&#259;ng nh&#7853;p" required>
+                <input type="password" name="password" class="form-control" placeholder="M&#7853;t kh&#7849;u" required>
+                <button type="submit" class="btn-submit">&#272;&#259;ng nh&#7853;p</button>
             </form>
 
             <div style="margin-top: 18px; font-size: 14px; color: var(--text-secondary);">
-                Chưa có tài khoản? <a href="register" style="color: var(--primary-color); font-weight: 700;">Đăng ký ngay</a>
+                Ch&#432;a c&#243; t&#224;i kho&#7843;n? <a href="register" style="color: var(--primary-color); font-weight: 700;">&#272;&#259;ng k&#253; ngay</a>
             </div>
 
             <div style="margin-top: 22px; border-top: 1px solid rgba(22, 32, 51, 0.08); padding-top: 22px;">
@@ -97,7 +97,7 @@
                             <path d="M3.964 10.71c-.18-.54-.2822-1.1168-.2822-1.71s.1023-1.17.2823-1.71V4.9582H.9573A8.9965 8.9965 0 0 0 0 9c0 1.4523.3477 2.8268.9573 4.0418L3.964 10.71z" fill="#FBBC05" />
                             <path d="M9 3.5795c1.3214 0 2.5077.4541 3.4405 1.346l2.5813-2.5814C13.4632.8918 11.426 0 9 0 5.4818 0 2.4382 2.0168.9574 4.9582l3.0067 2.3318C4.6718 5.1627 6.656 3.5795 9 3.5795z" fill="#EA4335" />
                         </svg>
-                        Đăng nhập với Google
+                        &#272;&#259;ng nh&#7853;p v&#7899;i Google
                     </button>
                 </a>
             </div>

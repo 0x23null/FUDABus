@@ -67,7 +67,7 @@ public class PaymentService {
             }
             if ("Paid".equalsIgnoreCase(bookingState.status)) {
                 connection.commit();
-                return true;
+                return false;
             }
 
             try (PreparedStatement update = connection.prepareStatement(
@@ -202,3 +202,4 @@ public class PaymentService {
         }
     }
 }
+

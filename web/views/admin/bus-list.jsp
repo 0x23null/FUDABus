@@ -1,110 +1,123 @@
 <%@page contentType="text/html" pageEncoding="UTF-8" %>
-    <%@taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
-        <!DOCTYPE html>
-        <html>
+<%@taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <jsp:include page="../common/head.jsp"></jsp:include>
+    <title>Quản lý xe - FUDA Admin</title>
+    <link rel="stylesheet" href="${pageContext.request.contextPath}/assets/css/style.css">
+    <link rel="stylesheet" href="${pageContext.request.contextPath}/assets/css/admin.css">
+</head>
+<body class="fade-in admin-page">
+    <jsp:include page="common/admin-header.jsp"></jsp:include>
 
-        <head>
-            <jsp:include page="../common/head.jsp"></jsp:include>
-            <title>Manage Buses - BusTicket</title>
-            <link rel="stylesheet" href="${pageContext.request.contextPath}/assets/css/style.css">
-            <style>
-                .data-table {
-                    width: 100%;
-                    border-collapse: collapse;
-                    margin-top: 24px;
-                    background: white;
-                    border-radius: 12px;
-                    overflow: hidden;
-                }
-
-                .data-table th,
-                .data-table td {
-                    padding: 16px 24px;
-                    text-align: left;
-                    border-bottom: 1px solid #eee;
-                }
-
-                .data-table th {
-                    background: #f9f9f9;
-                    font-weight: 600;
-                    font-size: 14px;
-                    color: var(--text-secondary);
-                }
-
-                .form-inline {
-                    display: flex;
-                    gap: 10px;
-                    margin-top: 20px;
-                    background: white;
-                    padding: 24px;
-                    border-radius: 18px;
-                    flex-wrap: wrap;
-                }
-
-                .form-inline input,
-                .form-inline select {
-                    padding: 10px 16px;
-                    border-radius: 8px;
-                    border: 1px solid #d2d2d7;
-                }
-            </style>
-        </head>
-
-        <body class="fade-in">
-            <jsp:include page="../common/header.jsp"></jsp:include>
-
-            <div class="container" style="padding-top: 40px; min-height: 80vh;">
-                <div style="display: flex; justify-content: space-between; align-items: center;">
-                    <h2 style="font-size: 28px; font-weight: 700;">Bus Management</h2>
-                    <a href="${pageContext.request.contextPath}/admin" class="btn btn-secondary">Back to Dashboard</a>
-                </div>
-
-                <!-- Add Bus Form -->
-                <form action="${pageContext.request.contextPath}/admin/bus/add" method="POST"
-                    class="glass-panel form-inline">
-                    <h4 style="width: 100%; margin-bottom: 10px;">Add New Bus</h4>
-                    <input type="text" name="busNumber" placeholder="Bus Number (e.g. 29B-12345)" required>
-                    <input type="number" name="seatCapacity" placeholder="Capacity" required>
-                    <select name="busType">
-                        <option value="Sleeper">Sleeper</option>
-                        <option value="Seater">Seater</option>
-                        <option value="Limousine">Limousine</option>
-                    </select>
-                    <input type="text" name="imageURL" placeholder="Image URL (Optional)">
-                    <button type="submit" class="btn btn-primary">Add Bus</button>
-                </form>
-
-                <table class="data-table">
-                    <thead>
-                        <tr>
-                            <th>ID</th>
-                            <th>Bus Number</th>
-                            <th>Capacity</th>
-                            <th>Type</th>
-                            <th>Actions</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <c:forEach items="${buses}" var="b">
-                            <tr>
-                                <td>${b.busID}</td>
-                                <td>${b.busNumber}</td>
-                                <td>${b.seatCapacity}</td>
-                                <td>${b.busType}</td>
-                                <td>
-                                    <a href="${pageContext.request.contextPath}/admin/bus/delete?id=${b.busID}"
-                                        class="btn btn-secondary"
-                                        style="padding: 6px 12px; font-size: 12px; color: var(--error-color);"
-                                        onclick="return confirm('Delete this bus?');">Delete</a>
-                                </td>
-                            </tr>
-                        </c:forEach>
-                    </tbody>
-                </table>
+    <main class="admin-shell">
+        <section class="admin-hero">
+            <div>
+                <span class="admin-eyebrow"><i class="fas fa-bus"></i> Đội xe</span>
+                <h1>Quản lý phương tiện</h1>
+                <p>Thêm xe mới vào hệ thống, chuẩn hóa số xe, loại xe và sức chứa để phần lập chuyến phía sau luôn dùng đúng dữ liệu.</p>
             </div>
+            <a href="${pageContext.request.contextPath}/admin" class="btn btn-secondary">Về tổng quan</a>
+        </section>
 
-            <jsp:include page="../common/footer.jsp"></jsp:include>
-            <script src="${pageContext.request.contextPath}/assets/js/main.js"></script>
-        </body>
+        <section class="admin-panel">
+            <div class="admin-panel-head">
+                <div>
+                    <span class="admin-eyebrow"><i class="fas fa-plus"></i> Tạo mới</span>
+                    <h2>Thêm xe vào đội vận hành</h2>
+                    <p>Mỗi xe nên có số hiệu rõ ràng và đúng loại cấu hình ghế để dễ sử dụng ở bước tạo chuyến.</p>
+                </div>
+            </div>
+            <div class="admin-panel-body">
+                <form action="${pageContext.request.contextPath}/admin/bus/add" method="POST">
+                    <div class="admin-form-grid">
+                        <div class="admin-field">
+                            <label>Số xe</label>
+                            <input type="text" name="busNumber" class="form-control" placeholder="Ví dụ: 29B-12345" required>
+                        </div>
+                        <div class="admin-field">
+                            <label>Sức chứa</label>
+                            <input type="number" name="seatCapacity" class="form-control" placeholder="40" min="1" required>
+                        </div>
+                        <div class="admin-field">
+                            <label>Loại xe</label>
+                            <select name="busType" class="form-control">
+                                <option value="Sleeper">Sleeper</option>
+                                <option value="Seater">Seater</option>
+                                <option value="Limousine">Limousine</option>
+                            </select>
+                        </div>
+                        <div class="admin-field">
+                            <label>Ảnh minh họa</label>
+                            <input type="text" name="imageURL" class="form-control" placeholder="URL ảnh (không bắt buộc)">
+                        </div>
+                    </div>
+                    <div class="admin-form-actions">
+                        <button type="submit" class="btn btn-primary">Thêm xe</button>
+                    </div>
+                </form>
+            </div>
+        </section>
 
-        </html>
+        <section class="admin-panel">
+            <div class="admin-panel-head">
+                <div>
+                    <span class="admin-eyebrow"><i class="fas fa-list"></i> Danh sách</span>
+                    <h2>Xe đang có trong hệ thống</h2>
+                    <p>Rà nhanh sức chứa, loại xe và dọn các dữ liệu không còn dùng tới.</p>
+                </div>
+            </div>
+            <div class="admin-panel-body">
+                <div class="table-shell">
+                    <table class="admin-table">
+                        <thead>
+                            <tr>
+                                <th>ID</th>
+                                <th>Xe</th>
+                                <th>Sức chứa</th>
+                                <th>Loại xe</th>
+                                <th>Thao tác</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <c:forEach items="${buses}" var="b">
+                                <tr>
+                                    <td class="mono">#${b.busID}</td>
+                                    <td>
+                                        <span class="table-title">${b.busNumber}</span>
+                                        <span class="table-subtitle">${empty b.imageURL ? 'Chưa có ảnh minh họa.' : 'Đã có ảnh minh họa cho xe này.'}</span>
+                                    </td>
+                                    <td>
+                                        <span class="table-title">${b.seatCapacity} ghế</span>
+                                        <span class="table-subtitle">Dùng cho bước chọn ghế khi đặt vé.</span>
+                                    </td>
+                                    <td>
+                                        <span class="status-badge status-scheduled">${b.busType}</span>
+                                    </td>
+                                    <td>
+                                        <a href="${pageContext.request.contextPath}/admin/bus/delete?id=${b.busID}"
+                                           class="action-link"
+                                           onclick="return confirm('Xóa xe này khỏi hệ thống?');">
+                                            <i class="fas fa-trash-alt"></i>
+                                            <span>Xóa</span>
+                                        </a>
+                                    </td>
+                                </tr>
+                            </c:forEach>
+                            <c:if test="${empty buses}">
+                                <tr>
+                                    <td colspan="5" class="empty-state">
+                                        <i class="fas fa-bus"></i>
+                                        <div>Chưa có xe nào được tạo.</div>
+                                    </td>
+                                </tr>
+                            </c:if>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </section>
+    </main>
+</body>
+</html>

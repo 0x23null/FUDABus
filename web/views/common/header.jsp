@@ -20,8 +20,26 @@
                 <a href="${pageContext.request.contextPath}/login" class="btn btn-secondary">Đăng nhập</a>
                 <a href="${pageContext.request.contextPath}/register" class="btn btn-primary">Đăng ký</a>
             </c:if>
+
             <c:if test="${not empty sessionScope.user}">
-                <span style="font-size: 14px; color: var(--text-secondary);">Xin chào, <b>${sessionScope.user.fullName}</b></span>
+                <span style="font-size: 14px; color: var(--text-secondary);">
+                    Xin chào,
+                    <b>
+                        <c:choose>
+                            <c:when test="${not empty sessionScope.user.fullName}">
+                                ${sessionScope.user.fullName}
+                            </c:when>
+                            <c:otherwise>${sessionScope.user.username}</c:otherwise>
+                        </c:choose>
+                    </b>
+                </span>
+                <a href="${pageContext.request.contextPath}/profile"
+                   class="btn btn-secondary"
+                   style="padding: 8px 12px; width: 44px; height: 44px; font-size: 18px;"
+                   title="Tài khoản"
+                   aria-label="Tài khoản">
+                    <i class="fas fa-user-circle"></i>
+                </a>
                 <a href="${pageContext.request.contextPath}/logout" class="btn btn-secondary" style="padding: 8px 16px; font-size: 13px;">Đăng xuất</a>
             </c:if>
         </div>

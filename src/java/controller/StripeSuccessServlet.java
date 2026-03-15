@@ -7,6 +7,7 @@ import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import service.BookingAccessService;
+import service.InvoiceEmailService;
 import service.PaymentService;
 import service.ServiceException;
 import util.StripeUtils;
@@ -14,6 +15,7 @@ import util.StripeUtils;
 @WebServlet(name = "StripeSuccessServlet", urlPatterns = { "/stripe-success" })
 public class StripeSuccessServlet extends HttpServlet {
     private final PaymentService paymentService = new PaymentService();
+    private final InvoiceEmailService invoiceEmailService = new InvoiceEmailService();
 
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
@@ -34,7 +36,10 @@ public class StripeSuccessServlet extends HttpServlet {
                 return;
             }
 
-            paymentService.markBookingPaid(bookingID, "Stripe", sessionID);
+            boolean newlyPaid = paymentService.markBookingPaid(bookingID, "Stripe", sessionID);
+            if (newlyPaid) {
+                invoiceEmailService.sendPaidBookingReceiptAsync(bookingID, "Stripe", sessionID);
+            }
             BookingAccessService.clearEditablePendingBooking(request.getSession(), bookingID);
             response.sendRedirect("ticket?id=" + bookingID);
         } catch (NumberFormatException ex) {
