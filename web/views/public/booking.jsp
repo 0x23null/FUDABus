@@ -7,6 +7,9 @@
     <jsp:include page="../common/head.jsp"></jsp:include>
     <title>Chọn ghế - FUDA Bus</title>
     <link rel="stylesheet" href="assets/css/style.css">
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+          integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY="
+          crossorigin="">
     <style>
         body {
             background:
@@ -68,6 +71,137 @@
             padding: 12px 14px;
             margin: 16px 0;
             font-weight: 600;
+        }
+
+        .route-map-panel {
+            padding: 22px;
+            border-radius: 28px;
+            background: rgba(255, 255, 255, 0.92);
+            border: 1px solid var(--border-color);
+            box-shadow: var(--shadow-md);
+            margin-bottom: 18px;
+        }
+
+        .route-map-head {
+            display: flex;
+            justify-content: space-between;
+            gap: 18px;
+            align-items: flex-start;
+            margin-bottom: 18px;
+        }
+
+        .route-map-head h2 {
+            margin: 6px 0 6px;
+            font-size: 24px;
+        }
+
+        .route-map-head p {
+            margin: 0;
+            color: var(--text-secondary);
+            line-height: 1.6;
+            max-width: 460px;
+        }
+
+        .route-map-eyebrow {
+            display: inline-flex;
+            align-items: center;
+            padding: 7px 12px;
+            border-radius: 999px;
+            background: #eff6ff;
+            color: var(--primary-dark);
+            font-size: 11px;
+            font-weight: 700;
+            letter-spacing: 0.08em;
+            text-transform: uppercase;
+        }
+
+        .route-map-tabs {
+            display: inline-flex;
+            gap: 8px;
+            padding: 4px;
+            border-radius: 999px;
+            background: #eff4fb;
+        }
+
+        .route-map-tab {
+            border: none;
+            border-radius: 999px;
+            padding: 10px 14px;
+            background: transparent;
+            color: var(--text-secondary);
+            font-weight: 650;
+            cursor: pointer;
+        }
+
+        .route-map-tab.is-active {
+            background: #fff;
+            color: var(--primary-dark);
+            box-shadow: 0 12px 24px -20px rgba(20, 33, 61, 0.28);
+        }
+
+        .route-map-canvas {
+            height: 280px;
+            border-radius: 24px;
+            overflow: hidden;
+            border: 1px solid #dbe7f7;
+            background: linear-gradient(180deg, #f7fbff 0%, #eef5ff 100%);
+        }
+
+        .route-map-canvas .leaflet-control-attribution {
+            font-size: 11px;
+        }
+
+        .route-map-meta {
+            display: grid;
+            grid-template-columns: repeat(3, minmax(0, 1fr));
+            gap: 12px;
+            margin-top: 14px;
+        }
+
+        .route-meta-card {
+            border-radius: 20px;
+            border: 1px solid #dbe7f7;
+            background: linear-gradient(180deg, #fbfdff 0%, #f4f8ff 100%);
+            padding: 14px 16px;
+        }
+
+        .route-meta-card span {
+            display: block;
+            color: var(--text-soft);
+            font-size: 11px;
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
+            font-weight: 700;
+            margin-bottom: 6px;
+        }
+
+        .route-meta-card strong {
+            display: block;
+            color: var(--text-primary);
+            font-size: 15px;
+            line-height: 1.45;
+        }
+
+        .route-map-state {
+            margin-top: 12px;
+            color: var(--text-secondary);
+            font-size: 13px;
+        }
+
+        .route-pin {
+            width: 16px;
+            height: 16px;
+            border-radius: 50%;
+            border: 3px solid #fff;
+            box-shadow: 0 8px 16px -10px rgba(15, 23, 42, 0.5);
+        }
+
+        .route-pin.origin {
+            background: #2563eb;
+        }
+
+        .route-pin.destination {
+            background: #0f766e;
         }
 
         .segment-grid {
@@ -357,6 +491,10 @@
             .summary-card {
                 position: static;
             }
+
+            .route-map-meta {
+                grid-template-columns: 1fr;
+            }
         }
 
         @media (max-width: 720px) {
@@ -379,6 +517,10 @@
             .segment-status {
                 width: 100%;
                 min-width: 0;
+            }
+
+            .route-map-head {
+                flex-direction: column;
             }
 
             .segment-frame {
@@ -412,6 +554,42 @@
 
         <div class="layout">
             <div class="panel page-panel">
+                <section class="route-map-panel">
+                    <div class="route-map-head">
+                        <div>
+                            <span class="route-map-eyebrow">Route Preview</span>
+                            <h2>Bản đồ hành trình</h2>
+                            <p>Xem nhanh tuyến đường tương ứng với chuyến bạn đã chọn trước khi chốt ghế và chuyển sang bước thanh toán.</p>
+                        </div>
+
+                        <c:if test="${not empty returnTrip}">
+                            <div class="route-map-tabs" id="routeMapTabs">
+                                <button type="button" class="route-map-tab is-active" data-route-segment="outbound">Chuyến đi</button>
+                                <button type="button" class="route-map-tab" data-route-segment="return">Chuyến về</button>
+                            </div>
+                        </c:if>
+                    </div>
+
+                    <div id="routeMap" class="route-map-canvas"></div>
+
+                    <div class="route-map-meta">
+                        <div class="route-meta-card">
+                            <span>Tuyến đường</span>
+                            <strong id="routeMapLabel">Đang tải dữ liệu tuyến...</strong>
+                        </div>
+                        <div class="route-meta-card">
+                            <span>Khoảng cách</span>
+                            <strong id="routeMapDistance">Đang tính toán</strong>
+                        </div>
+                        <div class="route-meta-card">
+                            <span>Thời gian dự kiến</span>
+                            <strong id="routeMapDuration">Đang tính toán</strong>
+                        </div>
+                    </div>
+
+                    <div class="route-map-state" id="routeMapState">Đang tải bản đồ lộ trình...</div>
+                </section>
+
                 <div class="segment-grid">
                     <div class="segment-card">
                         <div class="segment-head">
@@ -570,6 +748,9 @@
         </div>
     </div>
 
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
+            integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo="
+            crossorigin=""></script>
     <script>
         const requiredCount = ${passengerCount};
         const outboundPrice = ${trip.price};
@@ -577,6 +758,47 @@
         const hasReturn = ${not empty returnTrip};
         const outboundSeats = [];
         const returnSeats = [];
+        const routeStateEl = document.getElementById('routeMapState');
+        const routeLabelEl = document.getElementById('routeMapLabel');
+        const routeDistanceEl = document.getElementById('routeMapDistance');
+        const routeDurationEl = document.getElementById('routeMapDuration');
+        const routeTabButtons = Array.from(document.querySelectorAll('[data-route-segment]'));
+        const routeCache = {};
+        const cityCoordinates = {
+            'Hà Nội': [21.0285, 105.8542],
+            'Hồ Chí Minh': [10.7769, 106.7009],
+            'Đà Nẵng': [16.0544, 108.2022],
+            'Hải Phòng': [20.8449, 106.6881],
+            'Cần Thơ': [10.0452, 105.7469],
+            'Đà Lạt': [11.9404, 108.4583],
+            'Nha Trang': [12.2388, 109.1967],
+            'Vũng Tàu': [10.4114, 107.1362],
+            'Quy Nhơn': [13.7820, 109.2197],
+            'Phú Quốc': [10.2899, 103.9840],
+            'Huế': [16.4637, 107.5909],
+            'Kon Tum': [14.3497, 108.0005]
+        };
+        const routeSegments = [
+            {
+                key: 'outbound',
+                label: 'Chuyến đi',
+                origin: '${trip.route.origin}',
+                destination: '${trip.route.destination}'
+            }
+            <c:if test="${not empty returnTrip}">
+            ,
+            {
+                key: 'return',
+                label: 'Chuyến về',
+                origin: '${returnTrip.route.origin}',
+                destination: '${returnTrip.route.destination}'
+            }
+            </c:if>
+        ];
+        let routeMap = null;
+        let routeLine = null;
+        let routeMarkers = [];
+        let activeRouteSegment = 'outbound';
 
         <c:forEach items="${preselectedOutboundSeats}" var="seat">
             outboundSeats.push('${seat}');
@@ -584,6 +806,215 @@
         <c:forEach items="${preselectedReturnSeats}" var="seat">
             returnSeats.push('${seat}');
         </c:forEach>
+
+        function getCityCoordinates(city) {
+            return cityCoordinates[(city || '').trim()] || null;
+        }
+
+        function formatDistance(distanceKm) {
+            if (distanceKm == null || Number.isNaN(distanceKm)) {
+                return 'Chưa có dữ liệu';
+            }
+            return distanceKm.toFixed(1) + ' km';
+        }
+
+        function formatDuration(durationMinutes) {
+            if (durationMinutes == null || Number.isNaN(durationMinutes)) {
+                return 'Chưa có dữ liệu';
+            }
+
+            const hours = Math.floor(durationMinutes / 60);
+            const minutes = Math.round(durationMinutes % 60);
+            if (hours <= 0) {
+                return minutes + ' phút';
+            }
+            return hours + ' giờ ' + minutes + ' phút';
+        }
+
+        function setRouteState(message) {
+            if (routeStateEl) {
+                routeStateEl.innerText = message;
+            }
+        }
+
+        function clearRouteLayers() {
+            if (!routeMap) {
+                return;
+            }
+
+            if (routeLine) {
+                routeMap.removeLayer(routeLine);
+                routeLine = null;
+            }
+
+            routeMarkers.forEach((marker) => routeMap.removeLayer(marker));
+            routeMarkers = [];
+        }
+
+        function createPin(className) {
+            return L.divIcon({
+                className: '',
+                html: '<span class="route-pin ' + className + '"></span>',
+                iconSize: [16, 16],
+                iconAnchor: [8, 8]
+            });
+        }
+
+        function animateRouteLine(latlngs) {
+            clearRouteLayers();
+
+            routeLine = L.polyline([], {
+                color: '#2563eb',
+                weight: 5,
+                opacity: 0.92,
+                lineCap: 'round',
+                lineJoin: 'round'
+            }).addTo(routeMap);
+
+            const originMarker = L.marker(latlngs[0], { icon: createPin('origin') }).addTo(routeMap);
+            const destinationMarker = L.marker(latlngs[latlngs.length - 1], { icon: createPin('destination') }).addTo(routeMap);
+            routeMarkers = [originMarker, destinationMarker];
+
+            const totalPoints = latlngs.length;
+            let startTime = null;
+
+            function step(timestamp) {
+                if (!startTime) {
+                    startTime = timestamp;
+                }
+
+                const progress = Math.min((timestamp - startTime) / 900, 1);
+                const visiblePoints = Math.max(2, Math.floor(progress * (totalPoints - 1)) + 1);
+                routeLine.setLatLngs(latlngs.slice(0, visiblePoints));
+
+                if (progress < 1) {
+                    window.requestAnimationFrame(step);
+                }
+            }
+
+            window.requestAnimationFrame(step);
+        }
+
+        function fitRouteBounds(latlngs) {
+            if (!routeMap || !latlngs.length) {
+                return;
+            }
+
+            routeMap.fitBounds(L.latLngBounds(latlngs), {
+                padding: [28, 28]
+            });
+        }
+
+        async function resolveRouteData(segment) {
+            if (routeCache[segment.key]) {
+                return routeCache[segment.key];
+            }
+
+            const originCoords = getCityCoordinates(segment.origin);
+            const destinationCoords = getCityCoordinates(segment.destination);
+
+            if (!originCoords || !destinationCoords) {
+                const fallbackMissing = {
+                    label: segment.origin + ' - ' + segment.destination,
+                    distanceKm: null,
+                    durationMinutes: null,
+                    coordinates: [],
+                    message: 'Thiếu tọa độ cho tuyến này. Bạn có thể bổ sung lat/lng sau để map chính xác hơn.'
+                };
+                routeCache[segment.key] = fallbackMissing;
+                return fallbackMissing;
+            }
+
+            const osrmUrl = 'https://router.project-osrm.org/route/v1/driving/'
+                + originCoords[1] + ',' + originCoords[0] + ';'
+                + destinationCoords[1] + ',' + destinationCoords[0]
+                + '?overview=full&geometries=geojson';
+
+            try {
+                const response = await fetch(osrmUrl);
+                const data = await response.json();
+                const firstRoute = data && data.routes && data.routes[0];
+
+                if (!response.ok || !firstRoute || !firstRoute.geometry || !firstRoute.geometry.coordinates) {
+                    throw new Error('Route API unavailable');
+                }
+
+                const resolved = {
+                    label: segment.origin + ' - ' + segment.destination,
+                    distanceKm: firstRoute.distance / 1000,
+                    durationMinutes: firstRoute.duration / 60,
+                    coordinates: firstRoute.geometry.coordinates.map((point) => [point[1], point[0]]),
+                    message: 'Lộ trình đang hiển thị theo dữ liệu định tuyến đường bộ.'
+                };
+                routeCache[segment.key] = resolved;
+                return resolved;
+            } catch (error) {
+                const fallbackLine = {
+                    label: segment.origin + ' - ' + segment.destination,
+                    distanceKm: null,
+                    durationMinutes: null,
+                    coordinates: [originCoords, destinationCoords],
+                    message: 'Không lấy được route chi tiết. Đang hiển thị tuyến nối trực tiếp giữa hai điểm.'
+                };
+                routeCache[segment.key] = fallbackLine;
+                return fallbackLine;
+            }
+        }
+
+        async function renderRouteSegment(segmentKey) {
+            const segment = routeSegments.find((item) => item.key === segmentKey) || routeSegments[0];
+            if (!segment || !routeMap) {
+                return;
+            }
+
+            activeRouteSegment = segment.key;
+            routeTabButtons.forEach((button) => {
+                button.classList.toggle('is-active', button.dataset.routeSegment === activeRouteSegment);
+            });
+
+            routeLabelEl.innerText = segment.origin + ' - ' + segment.destination;
+            routeDistanceEl.innerText = 'Đang tính toán';
+            routeDurationEl.innerText = 'Đang tính toán';
+            setRouteState('Đang tải lộ trình...');
+
+            const routeData = await resolveRouteData(segment);
+            routeLabelEl.innerText = routeData.label;
+            routeDistanceEl.innerText = formatDistance(routeData.distanceKm);
+            routeDurationEl.innerText = formatDuration(routeData.durationMinutes);
+            setRouteState(routeData.message);
+
+            if (routeData.coordinates.length) {
+                fitRouteBounds(routeData.coordinates);
+                animateRouteLine(routeData.coordinates);
+            } else {
+                clearRouteLayers();
+            }
+        }
+
+        function initRouteMap() {
+            const mapCanvas = document.getElementById('routeMap');
+            if (!mapCanvas || typeof L === 'undefined') {
+                return;
+            }
+
+            routeMap = L.map(mapCanvas, {
+                zoomControl: true,
+                scrollWheelZoom: false
+            });
+
+            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                maxZoom: 18,
+                attribution: '&copy; OpenStreetMap'
+            }).addTo(routeMap);
+
+            routeTabButtons.forEach((button) => {
+                button.addEventListener('click', () => {
+                    renderRouteSegment(button.dataset.routeSegment);
+                });
+            });
+
+            renderRouteSegment(activeRouteSegment);
+        }
 
         function toggleSeat(el, type, seatNum) {
             if (el.classList.contains('booked')) return;
@@ -604,8 +1035,6 @@
             updateSummary();
         }
 
-        document.addEventListener('DOMContentLoaded', updateSummary);
-
         function updateSummary() {
             document.getElementById('display-outbound-seats').innerText = outboundSeats.length ? outboundSeats.join(', ') : 'Chưa chọn ghế';
             document.getElementById('input-outbound-seats').value = outboundSeats.join(',');
@@ -625,6 +1054,11 @@
                 : outboundSeats.length === requiredCount;
             document.getElementById('checkoutBtn').disabled = !valid;
         }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            updateSummary();
+            initRouteMap();
+        });
     </script>
 </body>
 </html>
