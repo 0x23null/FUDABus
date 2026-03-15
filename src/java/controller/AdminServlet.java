@@ -3,6 +3,8 @@ package controller;
 import dal.BusDAO;
 import dal.RouteDAO;
 import dal.TripDAO;
+import dal.BookingDAO;
+import model.Booking;
 import model.Bus;
 import model.Route;
 import model.Trip;
@@ -41,6 +43,29 @@ public class AdminServlet extends HttpServlet {
         String path = request.getServletPath();
 
         if (path.equals("/admin")) {
+            List<Bus> buses = new BusDAO().getAll();
+            List<Route> routes = new RouteDAO().getAll();
+            List<Trip> trips = new TripDAO().getAll();
+            List<Booking> bookings = new BookingDAO().getAllBookings();
+
+            long scheduledTripCount = trips.stream()
+                    .filter(trip -> trip != null && "Scheduled".equalsIgnoreCase(trip.getStatus()))
+                    .count();
+            long pendingBookingCount = bookings.stream()
+                    .filter(booking -> booking != null && "Pending".equalsIgnoreCase(booking.getStatus()))
+                    .count();
+            double paidRevenue = bookings.stream()
+                    .filter(booking -> booking != null && "Paid".equalsIgnoreCase(booking.getStatus()))
+                    .mapToDouble(Booking::getTotalPrice)
+                    .sum();
+
+            request.setAttribute("busCount", buses.size());
+            request.setAttribute("routeCount", routes.size());
+            request.setAttribute("tripCount", trips.size());
+            request.setAttribute("scheduledTripCount", scheduledTripCount);
+            request.setAttribute("bookingCount", bookings.size());
+            request.setAttribute("pendingBookingCount", pendingBookingCount);
+            request.setAttribute("paidRevenue", paidRevenue);
             request.getRequestDispatcher("/views/admin/dashboard.jsp").forward(request, response);
         } else if (path.equals("/admin/buses")) {
             BusDAO busDAO = new BusDAO();

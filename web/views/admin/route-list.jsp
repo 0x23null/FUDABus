@@ -1,109 +1,127 @@
 <%@page contentType="text/html" pageEncoding="UTF-8" %>
-    <%@taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
-        <!DOCTYPE html>
-        <html>
+<%@taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
+<%@taglib prefix="fmt" uri="http://java.sun.com/jsp/jstl/fmt" %>
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <jsp:include page="../common/head.jsp"></jsp:include>
+    <title>Quản lý tuyến - FUDA Admin</title>
+    <link rel="stylesheet" href="${pageContext.request.contextPath}/assets/css/style.css">
+    <link rel="stylesheet" href="${pageContext.request.contextPath}/assets/css/admin.css">
+</head>
+<body class="fade-in admin-page">
+    <jsp:include page="common/admin-header.jsp"></jsp:include>
 
-        <head>
-            <jsp:include page="../common/head.jsp"></jsp:include>
-            <title>Manage Routes - BusTicket</title>
-            <link rel="stylesheet" href="${pageContext.request.contextPath}/assets/css/style.css">
-            <style>
-                .data-table {
-                    width: 100%;
-                    border-collapse: collapse;
-                    margin-top: 24px;
-                    background: white;
-                    border-radius: 12px;
-                    overflow: hidden;
-                }
-
-                .data-table th,
-                .data-table td {
-                    padding: 16px 24px;
-                    text-align: left;
-                    border-bottom: 1px solid #eee;
-                }
-
-                .data-table th {
-                    background: #f9f9f9;
-                    font-weight: 600;
-                    font-size: 14px;
-                    color: var(--text-secondary);
-                }
-
-                .form-inline {
-                    display: flex;
-                    gap: 10px;
-                    margin-top: 20px;
-                    background: white;
-                    padding: 24px;
-                    border-radius: 18px;
-                    flex-wrap: wrap;
-                }
-
-                .form-inline input,
-                .form-inline select {
-                    padding: 10px 16px;
-                    border-radius: 8px;
-                    border: 1px solid #d2d2d7;
-                }
-            </style>
-        </head>
-
-        <body class="fade-in">
-            <jsp:include page="../common/header.jsp"></jsp:include>
-
-            <div class="container" style="padding-top: 40px; min-height: 80vh;">
-                <div style="display: flex; justify-content: space-between; align-items: center;">
-                    <h2 style="font-size: 28px; font-weight: 700;">Route Management</h2>
-                    <a href="${pageContext.request.contextPath}/admin" class="btn btn-secondary">Back to Dashboard</a>
-                </div>
-
-                <!-- Add Route Form -->
-                <form action="${pageContext.request.contextPath}/admin/route/add" method="POST"
-                    class="glass-panel form-inline">
-                    <h4 style="width: 100%; margin-bottom: 10px;">Add New Route</h4>
-                    <input type="text" name="origin" placeholder="Origin (e.g. Ha Noi)" required>
-                    <input type="text" name="destination" placeholder="Destination (e.g. Da Nang)" required>
-                    <input type="number" step="0.1" name="distance" placeholder="Distance (km)" required>
-                    <input type="number" name="duration" placeholder="Duration (mins)" required>
-                    <input type="text" name="description" placeholder="Description" style="flex-grow: 1;">
-                    <button type="submit" class="btn btn-primary">Add Route</button>
-                </form>
-
-                <table class="data-table">
-                    <thead>
-                        <tr>
-                            <th>ID</th>
-                            <th>Origin</th>
-                            <th>Destination</th>
-                            <th>Distance (km)</th>
-                            <th>Duration (min)</th>
-                            <th>Actions</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <c:forEach items="${routes}" var="r">
-                            <tr>
-                                <td>${r.routeID}</td>
-                                <td>${r.origin}</td>
-                                <td>${r.destination}</td>
-                                <td>${r.distance}</td>
-                                <td>${r.duration}</td>
-                                <td>
-                                    <a href="${pageContext.request.contextPath}/admin/route/delete?id=${r.routeID}"
-                                        class="btn btn-secondary"
-                                        style="padding: 6px 12px; font-size: 12px; color: var(--error-color);"
-                                        onclick="return confirm('Delete this route?');">Delete</a>
-                                </td>
-                            </tr>
-                        </c:forEach>
-                    </tbody>
-                </table>
+    <main class="admin-shell">
+        <section class="admin-hero">
+            <div>
+                <span class="admin-eyebrow"><i class="fas fa-route"></i> Tuyến xe</span>
+                <h1>Quản lý tuyến đường</h1>
+                <p>Cấu hình điểm đi, điểm đến, quãng đường và thời lượng vận hành để bước lập lịch chuyến có dữ liệu chính xác.</p>
             </div>
+            <a href="${pageContext.request.contextPath}/admin" class="btn btn-secondary">Về tổng quan</a>
+        </section>
 
-            <jsp:include page="../common/footer.jsp"></jsp:include>
-            <script src="${pageContext.request.contextPath}/assets/js/main.js"></script>
-        </body>
+        <section class="admin-panel">
+            <div class="admin-panel-head">
+                <div>
+                    <span class="admin-eyebrow"><i class="fas fa-plus"></i> Tạo mới</span>
+                    <h2>Thêm tuyến vào hệ thống</h2>
+                    <p>Một tuyến rõ ràng sẽ giúp lịch chuyến, giá vé và bản đồ hành trình sau này bám đúng dữ liệu nguồn.</p>
+                </div>
+            </div>
+            <div class="admin-panel-body">
+                <form action="${pageContext.request.contextPath}/admin/route/add" method="POST">
+                    <div class="admin-form-grid">
+                        <div class="admin-field">
+                            <label>Điểm đi</label>
+                            <input type="text" name="origin" class="form-control" placeholder="Ví dụ: Hà Nội" required>
+                        </div>
+                        <div class="admin-field">
+                            <label>Điểm đến</label>
+                            <input type="text" name="destination" class="form-control" placeholder="Ví dụ: Đà Nẵng" required>
+                        </div>
+                        <div class="admin-field">
+                            <label>Quãng đường (km)</label>
+                            <input type="number" step="0.1" name="distance" class="form-control" placeholder="765" required>
+                        </div>
+                        <div class="admin-field">
+                            <label>Thời lượng (phút)</label>
+                            <input type="number" name="duration" class="form-control" placeholder="840" required>
+                        </div>
+                        <div class="admin-field full">
+                            <label>Mô tả</label>
+                            <input type="text" name="description" class="form-control" placeholder="Ghi chú ngắn cho tuyến này (không bắt buộc)">
+                        </div>
+                    </div>
+                    <div class="admin-form-actions">
+                        <button type="submit" class="btn btn-primary">Thêm tuyến</button>
+                    </div>
+                </form>
+            </div>
+        </section>
 
-        </html>
+        <section class="admin-panel">
+            <div class="admin-panel-head">
+                <div>
+                    <span class="admin-eyebrow"><i class="fas fa-list"></i> Danh sách</span>
+                    <h2>Tuyến đang được khai thác</h2>
+                    <p>Rà nhanh khoảng cách, thời lượng và mô tả của từng tuyến trước khi lên lịch chạy.</p>
+                </div>
+            </div>
+            <div class="admin-panel-body">
+                <div class="table-shell">
+                    <table class="admin-table">
+                        <thead>
+                            <tr>
+                                <th>ID</th>
+                                <th>Tuyến</th>
+                                <th>Quãng đường</th>
+                                <th>Thời lượng</th>
+                                <th>Mô tả</th>
+                                <th>Thao tác</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <c:forEach items="${routes}" var="r">
+                                <tr>
+                                    <td class="mono">#${r.routeID}</td>
+                                    <td>
+                                        <span class="table-title">${r.origin} → ${r.destination}</span>
+                                        <span class="table-subtitle">Tuyến nền để tạo các chuyến cụ thể.</span>
+                                    </td>
+                                    <td>
+                                        <span class="table-title"><fmt:formatNumber value="${r.distance}" type="number" maxFractionDigits="1" /> km</span>
+                                    </td>
+                                    <td>
+                                        <span class="table-title">${r.duration} phút</span>
+                                    </td>
+                                    <td>
+                                        <span class="table-subtitle">${empty r.description ? 'Chưa có mô tả thêm.' : r.description}</span>
+                                    </td>
+                                    <td>
+                                        <a href="${pageContext.request.contextPath}/admin/route/delete?id=${r.routeID}"
+                                           class="action-link"
+                                           onclick="return confirm('Xóa tuyến này khỏi hệ thống?');">
+                                            <i class="fas fa-trash-alt"></i>
+                                            <span>Xóa</span>
+                                        </a>
+                                    </td>
+                                </tr>
+                            </c:forEach>
+                            <c:if test="${empty routes}">
+                                <tr>
+                                    <td colspan="6" class="empty-state">
+                                        <i class="fas fa-route"></i>
+                                        <div>Chưa có tuyến nào được tạo.</div>
+                                    </td>
+                                </tr>
+                            </c:if>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </section>
+    </main>
+</body>
+</html>

@@ -67,6 +67,35 @@ public class UserDAO extends DBContext {
         return null;
     }
 
+    public User getUserById(int userID) {
+        String sql = "SELECT * FROM Users WHERE userID = ?";
+        try {
+            PreparedStatement st = connection.prepareStatement(sql);
+            st.setInt(1, userID);
+            ResultSet rs = st.executeQuery();
+            if (rs.next()) {
+                return mapUser(rs);
+            }
+        } catch (SQLException e) {
+            System.out.println(e);
+        }
+        return null;
+    }
+
+    public boolean isEmailUsedByAnotherUser(String email, int userID) {
+        String sql = "SELECT 1 FROM Users WHERE email = ? AND userID <> ?";
+        try {
+            PreparedStatement st = connection.prepareStatement(sql);
+            st.setString(1, email);
+            st.setInt(2, userID);
+            ResultSet rs = st.executeQuery();
+            return rs.next();
+        } catch (SQLException e) {
+            System.out.println(e);
+        }
+        return false;
+    }
+
     public void register(String username, String password, String email, String fullName, String phoneNumber) {
         String sql = "INSERT INTO Users (username, password, email, fullName, phoneNumber, role) VALUES (?, ?, ?, ?, ?, 'Customer')";
         try {
@@ -146,6 +175,32 @@ public class UserDAO extends DBContext {
         try {
             PreparedStatement st = connection.prepareStatement(sql);
             st.setString(1, phoneNumber);
+            st.setInt(2, userID);
+            st.executeUpdate();
+        } catch (SQLException e) {
+            System.out.println(e);
+        }
+    }
+
+    public void updateProfile(int userID, String fullName, String email, String phoneNumber) {
+        String sql = "UPDATE Users SET fullName = ?, email = ?, phoneNumber = ? WHERE userID = ?";
+        try {
+            PreparedStatement st = connection.prepareStatement(sql);
+            st.setString(1, fullName);
+            st.setString(2, email);
+            st.setString(3, phoneNumber);
+            st.setInt(4, userID);
+            st.executeUpdate();
+        } catch (SQLException e) {
+            System.out.println(e);
+        }
+    }
+
+    public void changePassword(int userID, String plainPassword) {
+        String sql = "UPDATE Users SET password = ? WHERE userID = ?";
+        try {
+            PreparedStatement st = connection.prepareStatement(sql);
+            st.setString(1, PasswordUtils.hashPassword(plainPassword));
             st.setInt(2, userID);
             st.executeUpdate();
         } catch (SQLException e) {

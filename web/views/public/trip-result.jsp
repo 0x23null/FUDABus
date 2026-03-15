@@ -681,5 +681,6 @@
             <p>Ưu tiên những chuyến có giờ khởi hành phù hợp với lịch trình của bạn, sau đó mới cân nhắc loại xe và tổng thời gian di chuyển. Sau bước này, hệ thống sẽ cho bạn chọn ghế cụ thể theo đúng số hành khách đã nhập.</p>
         </div>
     </div>
+    <jsp:include page="../common/footer.jsp"></jsp:include>
 </body>
 </html>

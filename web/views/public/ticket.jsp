@@ -189,7 +189,7 @@
 
     <div class="page-wrap">
         <div class="success-box">
-            <div class="success-badge">✓</div>
+            <div class="success-badge">&#10003;</div>
             <h1>Mua vé xe thành công</h1>
             <p>Vé của bạn đã sẵn sàng. Bạn có thể tải PDF, in vé hoặc dùng mã QR khi lên xe.</p>
         </div>
@@ -285,5 +285,6 @@
             }).from(element).save();
         }
     </script>
+    <jsp:include page="../common/footer.jsp"></jsp:include>
 </body>
 </html>

@@ -11,6 +11,7 @@ import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import service.BookingAccessService;
+import service.InvoiceEmailService;
 import service.PaymentService;
 import service.ServiceException;
 import util.VNPayUtils;
@@ -18,6 +19,7 @@ import util.VNPayUtils;
 @WebServlet(name = "VNPayReturnServlet", urlPatterns = { "/vnpay-return" })
 public class VNPayReturnServlet extends HttpServlet {
     private final PaymentService paymentService = new PaymentService();
+    private final InvoiceEmailService invoiceEmailService = new InvoiceEmailService();
 
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
@@ -51,7 +53,10 @@ public class VNPayReturnServlet extends HttpServlet {
 
         try {
             if ("00".equals(request.getParameter("vnp_TransactionStatus"))) {
-                paymentService.markBookingPaid(bookingID, "VNPay", txnRef);
+                boolean newlyPaid = paymentService.markBookingPaid(bookingID, "VNPay", txnRef);
+                if (newlyPaid) {
+                    invoiceEmailService.sendPaidBookingReceiptAsync(bookingID, "VNPay", txnRef);
+                }
                 BookingAccessService.clearEditablePendingBooking(request.getSession(), bookingID);
                 response.sendRedirect("ticket?id=" + bookingID);
                 return;

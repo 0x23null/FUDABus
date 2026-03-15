@@ -255,5 +255,42 @@ public class BookingDAO extends DBContext {
         }
         return passengers;
     }
-}
 
+    public Booking getBookingByTicketCode(String ticketCode) {
+        String sql = "SELECT bookingID FROM Bookings WHERE ticketCode = ?";
+        try (PreparedStatement st = connection.prepareStatement(sql)) {
+            st.setString(1, ticketCode);
+            try (ResultSet rs = st.executeQuery()) {
+                if (rs.next()) {
+                    return getBookingFullDetails(rs.getInt("bookingID"));
+                }
+            }
+        } catch (SQLException e) {
+            System.out.println(e);
+        }
+        return null;
+    }
+
+    public List<Booking> getBookingsByPhoneNumber(String phoneNumber, int limit) {
+        List<Booking> bookings = new ArrayList<>();
+        String sql = "SELECT b.bookingID "
+                + "FROM Bookings b "
+                + "JOIN Users u ON b.userID = u.userID "
+                + "WHERE u.phoneNumber = ? "
+                + "ORDER BY b.bookingDate DESC";
+        try (PreparedStatement st = connection.prepareStatement(sql)) {
+            st.setString(1, phoneNumber);
+            try (ResultSet rs = st.executeQuery()) {
+                while (rs.next() && bookings.size() < limit) {
+                    Booking booking = getBookingFullDetails(rs.getInt("bookingID"));
+                    if (booking != null) {
+                        bookings.add(booking);
+                    }
+                }
+            }
+        } catch (SQLException e) {
+            System.out.println(e);
+        }
+        return bookings;
+    }
+}

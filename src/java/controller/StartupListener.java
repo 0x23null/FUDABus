@@ -4,6 +4,7 @@ import dal.DatabaseMigration;
 import jakarta.servlet.ServletContextEvent;
 import jakarta.servlet.ServletContextListener;
 import jakarta.servlet.annotation.WebListener;
+import service.EmailDispatcher;
 
 @WebListener
 public class StartupListener implements ServletContextListener {
@@ -16,5 +17,6 @@ public class StartupListener implements ServletContextListener {
 
     @Override
     public void contextDestroyed(ServletContextEvent sce) {
+        EmailDispatcher.shutdown();
     }
 }

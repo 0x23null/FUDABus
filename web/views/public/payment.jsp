@@ -497,7 +497,7 @@
                     </div>
 
                     <div class="payment-actions">
-                        <button type="submit" class="btn btn-primary pay-submit">Thanh Toán</button>
+                        <button type="submit" class="btn btn-primary pay-submit">Thanh toán</button>
                     </div>
                 </form>
 
@@ -685,5 +685,6 @@
             syncFormAction();
         })();
     </script>
+    <jsp:include page="../common/footer.jsp"></jsp:include>
 </body>
 </html>
