@@ -68,6 +68,7 @@ public class SearchServlet extends HttpServlet {
         request.setAttribute("adultCount", adultCount);
         request.setAttribute("childCount", childCount);
         request.setAttribute("passengerCount", adultCount + childCount);
+        request.setAttribute("currentTimeMillis", System.currentTimeMillis());
 
         request.getRequestDispatcher("views/public/trip-result.jsp").forward(request, response);
     }

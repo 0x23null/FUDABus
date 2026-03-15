@@ -288,6 +288,24 @@
             margin-top: 6px;
         }
 
+        .trip-status-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            margin-top: 12px;
+            padding: 8px 12px;
+            border-radius: 999px;
+            font-size: 12px;
+            font-weight: 700;
+            letter-spacing: 0.04em;
+        }
+
+        .trip-status-badge.departed {
+            background: #fff1f2;
+            color: #be123c;
+            border: 1px solid #fecdd3;
+        }
+
         .trip-form {
             margin-top: 18px;
         }
@@ -303,6 +321,14 @@
             color: #fff;
             background: linear-gradient(135deg, var(--primary-color), var(--primary-dark));
             box-shadow: 0 18px 30px -24px rgba(37, 99, 235, 0.7);
+        }
+
+        .trip-btn.is-disabled,
+        .trip-btn:disabled {
+            cursor: not-allowed;
+            background: linear-gradient(135deg, #94a3b8, #64748b);
+            box-shadow: none;
+            opacity: 0.92;
         }
 
         .selected-banner {
@@ -533,6 +559,7 @@
                         <c:otherwise>
                             <div class="trip-list">
                                 <c:forEach items="${returnTrips}" var="t">
+                                    <c:set var="isDeparted" value="${t.departureTime.time le currentTimeMillis}" />
                                     <div class="trip-card">
                                         <div class="trip-main">
                                             <div class="trip-time">
@@ -568,12 +595,22 @@
                                         <div class="trip-price-wrap">
                                             <div class="trip-price price-emphasis"><fmt:formatNumber value="${t.price}" type="number" maxFractionDigits="0" />đ</div>
                                             <div class="price-note">Giá mỗi ghế</div>
+                                            <c:if test="${isDeparted}">
+                                                <div class="trip-status-badge departed"><i class="fas fa-ban"></i> Đã khởi hành</div>
+                                            </c:if>
                                             <form class="trip-form" method="get" action="booking">
                                                 <input type="hidden" name="tripID" value="${selectedOutboundID}">
                                                 <input type="hidden" name="returnTripID" value="${t.tripID}">
                                                 <input type="hidden" name="adultCount" value="${adultCount}">
                                                 <input type="hidden" name="childCount" value="${childCount}">
-                                                <button type="submit" class="trip-btn">Chọn ghế cho hai chiều</button>
+                                                <c:choose>
+                                                    <c:when test="${isDeparted}">
+                                                        <button type="submit" class="trip-btn is-disabled" disabled="disabled">Đã khởi hành</button>
+                                                    </c:when>
+                                                    <c:otherwise>
+                                                        <button type="submit" class="trip-btn">Chọn ghế cho hai chiều</button>
+                                                    </c:otherwise>
+                                                </c:choose>
                                             </form>
                                         </div>
                                     </div>
@@ -608,6 +645,7 @@
                         <c:otherwise>
                             <div class="trip-list">
                                 <c:forEach items="${trips}" var="t">
+                                    <c:set var="isDeparted" value="${t.departureTime.time le currentTimeMillis}" />
                                     <div class="trip-card">
                                         <div class="trip-main">
                                             <div class="trip-time">
@@ -643,6 +681,9 @@
                                         <div class="trip-price-wrap">
                                             <div class="trip-price price-emphasis"><fmt:formatNumber value="${t.price}" type="number" maxFractionDigits="0" />đ</div>
                                             <div class="price-note">Giá mỗi ghế</div>
+                                            <c:if test="${isDeparted}">
+                                                <div class="trip-status-badge departed"><i class="fas fa-ban"></i> Đã khởi hành</div>
+                                            </c:if>
                                             <c:choose>
                                                 <c:when test="${tripType eq 'roundTrip'}">
                                                     <form class="trip-form" method="get" action="search">
@@ -654,7 +695,14 @@
                                                         <input type="hidden" name="adultCount" value="${adultCount}">
                                                         <input type="hidden" name="childCount" value="${childCount}">
                                                         <input type="hidden" name="selectedOutboundID" value="${t.tripID}">
-                                                        <button type="submit" class="trip-btn">Chọn chiều đi</button>
+                                                        <c:choose>
+                                                            <c:when test="${isDeparted}">
+                                                                <button type="submit" class="trip-btn is-disabled" disabled="disabled">Đã khởi hành</button>
+                                                            </c:when>
+                                                            <c:otherwise>
+                                                                <button type="submit" class="trip-btn">Chọn chiều đi</button>
+                                                            </c:otherwise>
+                                                        </c:choose>
                                                     </form>
                                                 </c:when>
                                                 <c:otherwise>
@@ -662,7 +710,14 @@
                                                         <input type="hidden" name="tripID" value="${t.tripID}">
                                                         <input type="hidden" name="adultCount" value="${adultCount}">
                                                         <input type="hidden" name="childCount" value="${childCount}">
-                                                        <button type="submit" class="trip-btn">Chọn ghế ngay</button>
+                                                        <c:choose>
+                                                            <c:when test="${isDeparted}">
+                                                                <button type="submit" class="trip-btn is-disabled" disabled="disabled">Đã khởi hành</button>
+                                                            </c:when>
+                                                            <c:otherwise>
+                                                                <button type="submit" class="trip-btn">Chọn ghế ngay</button>
+                                                            </c:otherwise>
+                                                        </c:choose>
                                                     </form>
                                                 </c:otherwise>
                                             </c:choose>
