@@ -104,6 +104,30 @@ public class TripDAO extends DBContext {
         return list;
     }
 
+    public List<Trip> searchUpcomingTripsByRoute(String origin, String destination) {
+        List<Trip> list = new ArrayList<>();
+        String sql = "SELECT t.*, r.origin, r.destination, r.distance, r.duration, b.busNumber, b.busType, b.seatCapacity "
+                + "FROM Trips t "
+                + "JOIN Routes r ON t.routeID = r.routeID "
+                + "JOIN Buses b ON t.busID = b.busID "
+                + "WHERE r.origin LIKE ? AND r.destination LIKE ? "
+                + "AND t.departureTime > GETDATE() "
+                + "AND t.status = 'Scheduled' "
+                + "ORDER BY t.departureTime ASC";
+        try {
+            PreparedStatement st = connection.prepareStatement(sql);
+            st.setString(1, "%" + origin + "%");
+            st.setString(2, "%" + destination + "%");
+            ResultSet rs = st.executeQuery();
+            while (rs.next()) {
+                list.add(mapTrip(rs));
+            }
+        } catch (SQLException e) {
+            System.out.println(e);
+        }
+        return list;
+    }
+
     public Trip getTripByID(int id) {
         String sql = "SELECT t.*, r.origin, r.destination, r.distance, r.duration, b.busNumber, b.busType, b.seatCapacity "
                 + "FROM Trips t "

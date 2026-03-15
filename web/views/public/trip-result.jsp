@@ -484,8 +484,7 @@
                 </div>
             </div>
             <div class="hero-actions">
-                <a class="hero-link secondary" href="home"><i class="fas fa-pen"></i> Đổi tìm kiếm</a>
-                <a class="hero-link primary" href="home#search-form"><i class="fas fa-search"></i> Tìm chuyến khác</a>
+                <a class="hero-link primary" href="home#search-form"><i class="fas fa-pen"></i> Sửa tiêu chí</a>
             </div>
         </div>
 
@@ -493,8 +492,8 @@
             <div class="notice">
                 <i class="fas fa-info-circle"></i>
                 <div>
-                    <strong>Không tìm thấy chuyến đúng theo tiêu chí bạn nhập.</strong>
-                    <div>Hệ thống đang hiển thị các chuyến sắp chạy để bạn tham khảo và chọn nhanh.</div>
+                    <strong>Không có chuyến đúng ngày bạn đã chọn.</strong>
+                    <div>Hệ thống đang ưu tiên hiển thị các chuyến gần nhất cùng tuyến ở ngày khác để bạn cân nhắc.</div>
                 </div>
             </div>
         </c:if>

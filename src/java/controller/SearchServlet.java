@@ -40,14 +40,23 @@ public class SearchServlet extends HttpServlet {
 
         TripDAO dao = new TripDAO();
         List<Trip> outboundTrips = dao.searchTrips(origin, destination, date);
+        boolean isSuggestion = false;
         if (outboundTrips.isEmpty()) {
-            outboundTrips = dao.getUpcomingTrips();
-            request.setAttribute("isSuggestion", true);
+            outboundTrips = dao.searchUpcomingTripsByRoute(origin, destination);
+            if (!outboundTrips.isEmpty()) {
+                isSuggestion = true;
+            }
         }
         request.setAttribute("trips", outboundTrips);
 
         if ("roundTrip".equals(tripType) && returnDate != null && !returnDate.isBlank()) {
             List<Trip> returnTrips = dao.searchTrips(destination, origin, returnDate);
+            if (returnTrips.isEmpty()) {
+                returnTrips = dao.searchUpcomingTripsByRoute(destination, origin);
+                if (!returnTrips.isEmpty()) {
+                    isSuggestion = true;
+                }
+            }
             request.setAttribute("returnTrips", returnTrips);
             request.setAttribute("searchReturnDate", returnDate);
         }
@@ -69,6 +78,7 @@ public class SearchServlet extends HttpServlet {
         request.setAttribute("childCount", childCount);
         request.setAttribute("passengerCount", adultCount + childCount);
         request.setAttribute("currentTimeMillis", System.currentTimeMillis());
+        request.setAttribute("isSuggestion", isSuggestion);
 
         request.getRequestDispatcher("views/public/trip-result.jsp").forward(request, response);
     }
