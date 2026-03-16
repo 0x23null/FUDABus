@@ -9,6 +9,13 @@ public class DBContext {
 
     public DBContext() {
         try {
+            if (isBlank(util.ConfigUtils.DB_HOST)
+                    || isBlank(util.ConfigUtils.DB_NAME)
+                    || isBlank(util.ConfigUtils.DB_USER)) {
+                System.err.println("Missing database configuration. Please set DB_HOST, DB_NAME, DB_USER, and DB_PASS.");
+                return;
+            }
+
             String url = "jdbc:sqlserver://" + util.ConfigUtils.DB_HOST + ":" + util.ConfigUtils.DB_PORT
                     + ";databaseName=" + util.ConfigUtils.DB_NAME
                     + ";encrypt=" + util.ConfigUtils.DB_ENCRYPT
@@ -27,5 +34,9 @@ public class DBContext {
         } else {
             System.out.println("Connection failed!");
         }
+    }
+
+    private boolean isBlank(String value) {
+        return value == null || value.trim().isEmpty();
     }
 }

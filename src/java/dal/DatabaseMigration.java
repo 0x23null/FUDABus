@@ -18,12 +18,19 @@ public class DatabaseMigration {
         }
 
         try {
+            removeLegacyBookingDetails(conn);
             ensureBookingColumns(conn);
             ensureBookingTables(conn);
             ensureIndexes(conn);
         } catch (SQLException e) {
             System.out.println("Migration Error: " + e.getMessage());
         }
+    }
+
+    private static void removeLegacyBookingDetails(Connection conn) throws SQLException {
+        execute(conn,
+                "IF EXISTS (SELECT * FROM sys.objects WHERE object_id = OBJECT_ID(N'[dbo].[BookingDetails]') AND type in (N'U')) "
+                + "BEGIN DROP TABLE BookingDetails; END");
     }
 
     private static void ensureBookingColumns(Connection conn) throws SQLException {

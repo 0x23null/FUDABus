@@ -68,14 +68,6 @@ CREATE TABLE Bookings (
     childCount INT DEFAULT 0
 );
 
-CREATE TABLE BookingDetails (
-    detailID INT IDENTITY(1,1) PRIMARY KEY,
-    bookingID INT NOT NULL FOREIGN KEY REFERENCES Bookings(bookingID) ON DELETE CASCADE,
-    seatNumber NVARCHAR(10) NOT NULL,
-    passengerName NVARCHAR(100),
-    price DECIMAL(18,2)
-);
-
 CREATE TABLE BookingSegments (
     segmentID INT IDENTITY(1,1) PRIMARY KEY,
     bookingID INT NOT NULL FOREIGN KEY REFERENCES Bookings(bookingID) ON DELETE CASCADE,
