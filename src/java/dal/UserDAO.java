@@ -44,7 +44,7 @@ public class UserDAO extends DBContext {
             st.setString(1, username);
             ResultSet rs = st.executeQuery();
             if (rs.next()) {
-                return new User(); // Just return non-null to indicate existence
+                return mapUser(rs);
             }
         } catch (SQLException e) {
             System.out.println(e);
@@ -105,6 +105,23 @@ public class UserDAO extends DBContext {
             st.setString(3, email);
             st.setString(4, fullName);
             st.setString(5, phoneNumber);
+            st.executeUpdate();
+        } catch (SQLException e) {
+            System.out.println(e);
+        }
+    }
+
+    public void upgradeGuestToCustomer(int userID, String username, String password, String fullName, String phoneNumber) {
+        String sql = "UPDATE Users "
+                + "SET username = ?, password = ?, fullName = ?, phoneNumber = ?, role = 'Customer' "
+                + "WHERE userID = ? AND role = 'Guest'";
+        try {
+            PreparedStatement st = connection.prepareStatement(sql);
+            st.setString(1, username);
+            st.setString(2, PasswordUtils.hashPassword(password));
+            st.setString(3, fullName);
+            st.setString(4, phoneNumber);
+            st.setInt(5, userID);
             st.executeUpdate();
         } catch (SQLException e) {
             System.out.println(e);
