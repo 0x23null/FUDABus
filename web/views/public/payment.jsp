@@ -549,6 +549,12 @@
                             <span>Hành khách</span>
                             <strong>${booking.adultCount} người lớn<c:if test="${booking.childCount > 0}">, ${booking.childCount} trẻ em</c:if></strong>
                         </div>
+                        <c:if test="${booking.childCount > 0}">
+                            <div class="detail-row">
+                                <span>Giá trẻ em</span>
+                                <strong>70% giá vé người lớn</strong>
+                            </div>
+                        </c:if>
                     </div>
                 </section>
 
@@ -638,14 +644,14 @@
                                 <c:forEach items="${booking.segments}" var="segment">
                                     <div class="detail-row">
                                         <span>${segment.displayType}</span>
-                                        <strong><fmt:formatNumber value="${segment.segmentPrice * booking.totalPassengerCount}" type="number" maxFractionDigits="0" />đ</strong>
+                                        <strong><fmt:formatNumber value="${segment.totalPrice}" type="number" maxFractionDigits="0" />đ</strong>
                                     </div>
                                 </c:forEach>
                             </c:when>
                             <c:otherwise>
                                 <div class="detail-row">
                                     <span>Giá vé</span>
-                                    <strong><fmt:formatNumber value="${booking.trip.price * booking.totalPassengerCount}" type="number" maxFractionDigits="0" />đ</strong>
+                                    <strong><fmt:formatNumber value="${booking.totalPrice}" type="number" maxFractionDigits="0" />đ</strong>
                                 </div>
                             </c:otherwise>
                         </c:choose>

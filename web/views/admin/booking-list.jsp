@@ -16,7 +16,7 @@
         <section class="admin-hero">
             <div>
                 <span class="admin-eyebrow"><i class="fas fa-ticket-alt"></i> Đơn đặt vé</span>
-                <h1>Quản lý booking và thanh toán</h1>
+                <h1>Quản lý đơn đặt vé và thanh toán</h1>
                 <p>Theo dõi trạng thái đơn, hành khách và hành trình khách đã chọn để nắm nhanh tình hình bán vé của hệ thống.</p>
             </div>
             <a href="${pageContext.request.contextPath}/admin" class="btn btn-secondary">Về tổng quan</a>
@@ -27,7 +27,7 @@
                 <div>
                     <span class="admin-eyebrow"><i class="fas fa-list"></i> Danh sách</span>
                     <h2>Tất cả đơn đặt vé</h2>
-                    <p>${empty bookings ? 'Chưa có booking nào trong hệ thống.' : 'Theo dõi toàn bộ đơn đặt vé và trạng thái thanh toán hiện tại.'}</p>
+                    <p>${empty bookings ? 'Chưa có đơn đặt vé nào trong hệ thống.' : 'Theo dõi toàn bộ đơn đặt vé và trạng thái thanh toán hiện tại.'}</p>
                 </div>
             </div>
             <div class="admin-panel-body">
@@ -48,7 +48,7 @@
                                 <tr>
                                     <td>
                                         <span class="table-title mono">${not empty b.ticketCode ? b.ticketCode : b.bookingID}</span>
-                                        <span class="table-subtitle">Booking #${b.bookingID}</span>
+                                        <span class="table-subtitle">Đơn #${b.bookingID}</span>
                                     </td>
                                     <td>
                                         <span class="table-title">${empty b.user.fullName ? 'Khách vãng lai' : b.user.fullName}</span>
@@ -86,7 +86,13 @@
                                         <span class="table-title"><fmt:formatNumber value="${b.totalPrice}" type="number" maxFractionDigits="0" /> đ</span>
                                     </td>
                                     <td>
-                                        <span class="status-badge ${b.status == 'Paid' ? 'status-paid' : (b.status == 'Cancelled' ? 'status-cancelled' : 'status-pending')}">${b.status}</span>
+                                        <span class="status-badge ${b.status == 'Paid' ? 'status-paid' : (b.status == 'Cancelled' ? 'status-cancelled' : 'status-pending')}">
+                                            <c:choose>
+                                                <c:when test="${b.status == 'Paid'}">Đã thanh toán</c:when>
+                                                <c:when test="${b.status == 'Cancelled'}">Đã hủy</c:when>
+                                                <c:otherwise>Chờ thanh toán</c:otherwise>
+                                            </c:choose>
+                                        </span>
                                     </td>
                                 </tr>
                             </c:forEach>
@@ -94,7 +100,7 @@
                                 <tr>
                                     <td colspan="6" class="empty-state">
                                         <i class="fas fa-receipt"></i>
-                                        <div>Chưa có booking nào để hiển thị.</div>
+                                        <div>Chưa có đơn đặt vé nào để hiển thị.</div>
                                     </td>
                                 </tr>
                             </c:if>

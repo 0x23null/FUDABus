@@ -19,15 +19,10 @@ public class SupportServlet extends HttpServlet {
     @Override
     protected void doPost(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
-        // Mock sending functionality
         String name = request.getParameter("name");
         String email = request.getParameter("email");
-        String message = request.getParameter("message");
-
-        // In a real app, send email processing logic here.
-
-        request.setAttribute("message", "Thank you, " + name
-                + "! Your request has been sent successfully. We will contact you at " + email + " soon.");
+        request.setAttribute("message", "Cảm ơn " + name
+                + ". Yêu cầu hỗ trợ đã được ghi nhận. Chúng tôi sẽ phản hồi qua " + email + " trong thời gian sớm nhất.");
         request.getRequestDispatcher("views/public/support.jsp").forward(request, response);
     }
 }

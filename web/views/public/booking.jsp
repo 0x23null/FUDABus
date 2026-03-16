@@ -121,15 +121,19 @@
             padding: 4px;
             border-radius: 999px;
             background: #eff4fb;
+            align-self: flex-start;
         }
 
         .route-map-tab {
             border: none;
             border-radius: 999px;
-            padding: 10px 14px;
+            min-width: 112px;
+            padding: 10px 16px;
             background: transparent;
             color: var(--text-secondary);
             font-weight: 650;
+            white-space: nowrap;
+            line-height: 1.2;
             cursor: pointer;
         }
 
@@ -523,6 +527,19 @@
                 flex-direction: column;
             }
 
+            .route-map-tabs {
+                width: 100%;
+                display: grid;
+                grid-template-columns: repeat(2, minmax(0, 1fr));
+                gap: 6px;
+            }
+
+            .route-map-tab {
+                width: 100%;
+                min-width: 0;
+                padding: 10px 12px;
+            }
+
             .segment-frame {
                 padding: 14px;
             }
@@ -557,7 +574,7 @@
                 <section class="route-map-panel">
                     <div class="route-map-head">
                         <div>
-                            <span class="route-map-eyebrow">Route Preview</span>
+                            <span class="route-map-eyebrow">Xem nhanh lộ trình</span>
                             <h2>Bản đồ hành trình</h2>
                             <p>Xem nhanh tuyến đường tương ứng với chuyến bạn đã chọn trước khi chốt ghế và chuyển sang bước thanh toán.</p>
                         </div>
@@ -741,7 +758,7 @@
                     </c:if>
 
                     <div class="summary-label" style="margin-top:16px;">Yêu cầu</div>
-                    <div class="helper-copy">Cần chọn đủ ${passengerCount} ghế cho mỗi chặng. Hệ thống sẽ giữ ghế bạn đã chọn khi chuyển sang bước thanh toán.</div>
+                    <div class="helper-copy">Cần chọn đủ ${passengerCount} ghế cho mỗi chặng. Hệ thống sẽ giữ ghế bạn đã chọn khi chuyển sang bước thanh toán.<c:if test="${childCount > 0}"> Trẻ em được tính 70% giá vé người lớn.</c:if></div>
                     <button type="submit" id="checkoutBtn" class="checkout-btn" disabled>Tiếp tục thanh toán</button>
                 </form>
             </div>
@@ -753,6 +770,9 @@
             crossorigin=""></script>
     <script>
         const requiredCount = ${passengerCount};
+        const adultCount = ${adultCount};
+        const childCount = ${childCount};
+        const childFareRate = 0.7;
         const outboundPrice = ${trip.price};
         const returnPrice = ${not empty returnTrip ? returnTrip.price : 0};
         const hasReturn = ${not empty returnTrip};
@@ -1035,6 +1055,12 @@
             updateSummary();
         }
 
+        function calculateSelectionTotal(selectedCount, basePrice) {
+            const adultSeats = Math.min(selectedCount, adultCount);
+            const childSeats = Math.min(Math.max(selectedCount - adultCount, 0), childCount);
+            return (adultSeats * basePrice) + (childSeats * basePrice * childFareRate);
+        }
+
         function updateSummary() {
             document.getElementById('display-outbound-seats').innerText = outboundSeats.length ? outboundSeats.join(', ') : 'Chưa chọn ghế';
             document.getElementById('input-outbound-seats').value = outboundSeats.join(',');
@@ -1046,7 +1072,8 @@
                 document.getElementById('count-return').innerText = returnSeats.length + '/' + requiredCount;
             }
 
-            const total = (outboundSeats.length * outboundPrice) + (returnSeats.length * returnPrice);
+            const total = calculateSelectionTotal(outboundSeats.length, outboundPrice)
+                + calculateSelectionTotal(returnSeats.length, returnPrice);
             document.getElementById('display-total').innerText = total.toLocaleString('vi-VN') + 'đ';
 
             const valid = hasReturn

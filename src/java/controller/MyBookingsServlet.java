@@ -2,6 +2,7 @@ package controller;
 
 import dal.BookingDAO;
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.List;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.annotation.WebServlet;
@@ -27,7 +28,12 @@ public class MyBookingsServlet extends HttpServlet {
         }
 
         BookingDAO dao = new BookingDAO();
-        List<Booking> bookings = dao.getBookingsByUserID(user.getUserID());
+        List<Booking> bookingSummaries = dao.getBookingsByUserID(user.getUserID());
+        List<Booking> bookings = new ArrayList<>();
+        for (Booking booking : bookingSummaries) {
+            Booking fullBooking = dao.getBookingFullDetails(booking.getBookingID());
+            bookings.add(fullBooking != null ? fullBooking : booking);
+        }
 
         request.setAttribute("bookings", bookings);
         request.getRequestDispatcher("views/public/my-bookings.jsp").forward(request, response);

@@ -118,7 +118,7 @@
                     </article>
                     <article class="hint-card">
                         <h3>Theo dõi đơn chờ thanh toán</h3>
-                        <p>Các đơn Pending nên được kiểm soát định kỳ để nắm luồng thanh toán và xử lý nhanh những booking bị treo quá lâu.</p>
+                        <p>Các đơn chờ thanh toán nên được kiểm soát định kỳ để nắm luồng thanh toán và xử lý nhanh những đơn bị treo quá lâu.</p>
                     </article>
                 </div>
             </div>

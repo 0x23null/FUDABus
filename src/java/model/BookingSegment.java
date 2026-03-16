@@ -10,6 +10,7 @@ public class BookingSegment {
     private String segmentType;
     private int segmentOrder;
     private double segmentPrice;
+    private double totalPrice;
     private Trip trip;
     private List<String> seatNumbers = new ArrayList<>();
 
@@ -59,6 +60,14 @@ public class BookingSegment {
 
     public void setSegmentPrice(double segmentPrice) {
         this.segmentPrice = segmentPrice;
+    }
+
+    public double getTotalPrice() {
+        return totalPrice;
+    }
+
+    public void setTotalPrice(double totalPrice) {
+        this.totalPrice = totalPrice;
     }
 
     public Trip getTrip() {

@@ -44,7 +44,7 @@ document.addEventListener('DOMContentLoaded', () => {
         if (role === 'assistant') {
             const meta = document.createElement('div');
             meta.className = 'ai-message-meta';
-            meta.textContent = 'FUAI • AI Agent • Vừa xong';
+            meta.textContent = 'FUAI • Trợ lý ảo • Vừa xong';
             wrapper.appendChild(meta);
         }
 
@@ -89,9 +89,9 @@ document.addEventListener('DOMContentLoaded', () => {
             }
 
             const data = await response.json();
-            appendMessage('assistant', data.reply || 'FUAI tạm bận, Quý khách thử lại giúp mình nhé.');
+            appendMessage('assistant', data.reply || 'Mình hơi bận một chút, bạn thử nhắn lại giúp mình nhé.');
         } catch (error) {
-            appendMessage('assistant', 'FUAI chưa kết nối được lúc này. Quý khách vui lòng thử lại sau ít phút nhé.');
+            appendMessage('assistant', 'Mình đang mất kết nối tạm thời. Bạn thử lại sau ít phút nhé.');
         } finally {
             setLoading(false);
             updateComposerState();

@@ -172,6 +172,7 @@ public class BookingDAO extends DBContext {
     private List<BookingSegment> loadSegments(int bookingID) throws SQLException {
         List<BookingSegment> segments = new ArrayList<>();
         String sql = "SELECT bs.segmentID, bs.bookingID, bs.tripID, bs.segmentType, bs.segmentOrder, bs.segmentPrice, "
+                + "COALESCE(seatTotals.totalSeatPrice, 0) AS totalSeatPrice, "
                 + "t.departureTime, t.arrivalTime, t.price, t.status, "
                 + "r.routeID, r.origin, r.destination, r.duration, "
                 + "b.busID, b.busNumber, b.busType, b.seatCapacity "
@@ -179,6 +180,8 @@ public class BookingDAO extends DBContext {
                 + "JOIN Trips t ON bs.tripID = t.tripID "
                 + "JOIN Routes r ON t.routeID = r.routeID "
                 + "JOIN Buses b ON t.busID = b.busID "
+                + "LEFT JOIN (SELECT segmentID, SUM(price) AS totalSeatPrice FROM BookingSegmentSeats GROUP BY segmentID) seatTotals "
+                + "ON seatTotals.segmentID = bs.segmentID "
                 + "WHERE bs.bookingID = ? "
                 + "ORDER BY bs.segmentOrder ASC";
         try (PreparedStatement st = connection.prepareStatement(sql)) {
@@ -192,6 +195,7 @@ public class BookingDAO extends DBContext {
                     segment.setSegmentType(rs.getString("segmentType"));
                     segment.setSegmentOrder(rs.getInt("segmentOrder"));
                     segment.setSegmentPrice(rs.getDouble("segmentPrice"));
+                    segment.setTotalPrice(rs.getDouble("totalSeatPrice"));
 
                     Trip trip = new Trip();
                     trip.setTripID(rs.getInt("tripID"));

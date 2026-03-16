@@ -39,7 +39,10 @@ public class AiAssistantService {
             "Chỉ sử dụng thông tin có trong phần NGỮ CẢNH HỆ THỐNG được cung cấp.",
             "Nếu dữ liệu còn thiếu, hãy nói rõ là bạn chưa đủ thông tin và hỏi 1 câu ngắn để làm rõ.",
             "Không bịa mã vé, giờ xe, trạng thái thanh toán hay chính sách ngoài ngữ cảnh.",
-            "Ưu tiên trả lời bằng tiếng Việt, tự nhiên, ngắn gọn nhưng hữu ích.",
+            "Ưu tiên trả lời bằng tiếng Việt, giọng chat tự nhiên, thân thiện, xưng mình - bạn.",
+            "Không lặp lại tên FUAI ở đầu mỗi câu và không mở đầu bằng đoạn chào hỏi dài khi người dùng đã hỏi thẳng.",
+            "Nếu người dùng hỏi có tuyến hoặc có chuyến giữa hai nơi không, hãy trả lời trực tiếp là có hay chưa có trước, rồi mới gợi ý bước tiếp theo.",
+            "Khi nhắc lại hành trình, luôn giữ đúng chiều người dùng hỏi.",
             "Nếu người dùng đang hỏi tiếp về cùng một vé, hãy giữ nguyên ngữ cảnh vé đó.",
             "Nếu người dùng hỏi về hoàn vé, hủy vé, đổi vé hoặc thanh toán, hãy ưu tiên giải thích bước tiếp theo thật rõ ràng.");
 
@@ -50,16 +53,18 @@ public class AiAssistantService {
     public String reply(String message, String currentPath, User currentUser, HttpSession session) {
         String normalizedMessage = normalizeWhitespace(message);
         if (normalizedMessage.isBlank()) {
-            return "Quý khách cứ nhắn cho FUAI nhu cầu như tìm chuyến, tra cứu vé hoặc hỏi về thanh toán nhé.";
+            return "Bạn cứ nhắn như tìm chuyến, tra cứu vé hoặc hỏi thanh toán, mình hỗ trợ ngay.";
         }
 
         SupportSnapshot snapshot = buildSnapshot(normalizedMessage, currentPath, currentUser, session);
-        List<AiChatMessage> payload = buildConversation(normalizedMessage, snapshot, session);
+        String response = buildPriorityReply(normalizeText(normalizedMessage), snapshot);
 
-        String response = null;
-        try {
-            response = zaiChatClient.chat(payload);
-        } catch (IOException ignored) {
+        if (response == null) {
+            List<AiChatMessage> payload = buildConversation(normalizedMessage, snapshot, session);
+            try {
+                response = zaiChatClient.chat(payload);
+            } catch (IOException ignored) {
+            }
         }
 
         if (response == null || response.isBlank()) {
@@ -96,7 +101,7 @@ public class AiAssistantService {
         context.append("- Thanh toán bằng VNPay sandbox và Stripe sandbox\n");
         context.append("- Khách có thể xem vé điện tử sau khi thanh toán\n\n");
         context.append("FAQ NỘI BỘ\n");
-        context.append("- Trẻ em hiện được tính như một hành khách và cần ghế riêng.\n");
+        context.append("- Trẻ em được tính 70% giá vé người lớn và vẫn cần ghế riêng.\n");
         context.append("- Nếu thanh toán chưa hoàn tất, đơn thường ở trạng thái Pending.\n");
         context.append("- User có thể hủy đơn Pending ở trang thanh toán.\n");
         context.append("- Vé đã thanh toán có thể xem lại ở trang lịch sử hoặc trang chi tiết vé.\n");
@@ -167,7 +172,7 @@ public class AiAssistantService {
                 }
                 context.append("\n");
             }
-        } else if (snapshot.routeOnly != null && isTripSearchIntent(normalized)) {
+        } else if (snapshot.routeOnly != null && (isTripSearchIntent(normalized) || isRouteAvailabilityIntent(normalized))) {
             context.append("NHẬN DIỆN HÀNH TRÌNH\n");
             context.append("- Hành trình đang nhắc tới: ")
                     .append(snapshot.routeOnly.getOrigin()).append(" -> ")
@@ -227,19 +232,33 @@ public class AiAssistantService {
 
     private List<String> extractCityMentions(String message) {
         String normalized = normalizeText(message);
-        LinkedHashSet<String> mentions = new LinkedHashSet<>();
+        List<CityMention> mentions = new ArrayList<>();
+        LinkedHashSet<String> seen = new LinkedHashSet<>();
         for (Route route : tripDAO.getAllRoutes()) {
-            if (normalized.contains(normalizeText(route.getOrigin()))) {
-                mentions.add(route.getOrigin());
-            }
-            if (normalized.contains(normalizeText(route.getDestination()))) {
-                mentions.add(route.getDestination());
-            }
-            if (mentions.size() >= 2) {
+            collectCityMention(mentions, seen, normalized, route.getOrigin());
+            collectCityMention(mentions, seen, normalized, route.getDestination());
+        }
+        mentions.sort((left, right) -> Integer.compare(left.position, right.position));
+
+        List<String> orderedMentions = new ArrayList<>();
+        for (CityMention mention : mentions) {
+            orderedMentions.add(mention.name);
+            if (orderedMentions.size() >= 2) {
                 break;
             }
         }
-        return new ArrayList<>(mentions);
+        return orderedMentions;
+    }
+
+    private void collectCityMention(List<CityMention> mentions, LinkedHashSet<String> seen, String normalizedMessage, String city) {
+        if (city == null || city.isBlank() || seen.contains(city)) {
+            return;
+        }
+        int position = normalizedMessage.indexOf(normalizeText(city));
+        if (position >= 0) {
+            mentions.add(new CityMention(city, position));
+            seen.add(city);
+        }
     }
 
     private TripSearchSnapshot resolveTripSearch(String message, Route preMatchedRoute) {
@@ -294,15 +313,13 @@ public class AiAssistantService {
         return null;
     }
 
-    private String buildFallbackReply(String message, SupportSnapshot snapshot) {
-        String normalized = normalizeText(message);
-
+    private String buildPriorityReply(String normalized, SupportSnapshot snapshot) {
         if (isGreeting(normalized)) {
-            return "FUAI chào Quý khách. Quý khách cần tra cứu vé, tìm chuyến hay hỗ trợ thanh toán ạ?";
+            return "Chào bạn, mình là FUAI của FUDA Bus. Bạn muốn tìm chuyến, tra cứu vé hay cần hỗ trợ thanh toán?";
         }
 
         if (snapshot.requestedTicketCode != null && snapshot.ticketBooking == null) {
-            return "FUAI chưa tìm thấy vé " + snapshot.requestedTicketCode + ". Quý khách vui lòng kiểm tra lại mã vé hoặc số điện thoại đặt vé nhé.";
+            return "Mình chưa tìm thấy vé " + snapshot.requestedTicketCode + ". Bạn kiểm tra lại mã vé hoặc gửi số điện thoại đặt vé để mình tìm tiếp nhé.";
         }
 
         if (snapshot.ticketBooking != null) {
@@ -310,36 +327,102 @@ public class AiAssistantService {
         }
 
         if (!snapshot.phoneBookings.isEmpty()) {
-            StringBuilder builder = new StringBuilder("Mình đã tìm thấy một vài đơn gần nhất theo số điện thoại Quý khách cung cấp:\n");
+            StringBuilder builder = new StringBuilder("Mình tìm thấy vài đơn gần nhất theo số điện thoại bạn gửi:\n");
             for (Booking booking : snapshot.phoneBookings) {
                 builder.append("- ").append(formatBookingSummary(booking)).append("\n");
             }
-            builder.append("Quý khách muốn FUAI kiểm tra đơn nào kỹ hơn ạ?");
+            builder.append("Bạn muốn mình kiểm tra kỹ đơn nào?");
             return builder.toString().trim();
         }
 
         if (snapshot.tripSearch != null) {
             if (snapshot.tripSearch.trips.isEmpty()) {
-                return "FUAI chưa tìm thấy chuyến phù hợp cho hành trình "
+                return "Hiện mình chưa thấy chuyến phù hợp cho tuyến "
                         + snapshot.tripSearch.route.getOrigin() + " - " + snapshot.tripSearch.route.getDestination()
-                        + " vào ngày " + snapshot.tripSearch.date.format(SEARCH_DATE) + ". Quý khách thử đổi ngày hoặc tuyến khác nhé.";
+                        + " vào ngày " + snapshot.tripSearch.date.format(SEARCH_DATE)
+                        + ". Bạn thử đổi ngày hoặc nhắn tuyến khác nhé.";
             }
-            StringBuilder builder = new StringBuilder("Mình gợi ý cho Quý khách các chuyến sau:\n");
+            StringBuilder builder = new StringBuilder("Mình tìm được các chuyến này:\n");
             for (Trip trip : snapshot.tripSearch.trips) {
                 builder.append("- ").append(formatTripSummary(trip)).append("\n");
             }
-            builder.append("Nếu muốn, FUAI có thể gợi ý chuyến phù hợp hơn theo giờ đi hoặc giá vé.");
+            builder.append("Nếu muốn, mình lọc tiếp theo giờ đi hoặc mức giá cho bạn.");
             return builder.toString().trim();
         }
 
-        if (snapshot.routeOnly != null && isTripSearchIntent(normalized)) {
-            return "FUAI đã hiểu hành trình " + snapshot.routeOnly.getOrigin() + " - " + snapshot.routeOnly.getDestination()
-                    + ". Quý khách muốn đi ngày nào để mình tìm chuyến chính xác hơn ạ?";
+        if (snapshot.activeBooking != null && isBookingFollowUpIntent(normalized) && !isTripSearchIntent(normalized)) {
+            return buildBookingFollowUpReply(snapshot.activeBooking, normalized);
         }
 
-        if (snapshot.cityMentions.size() >= 2 && isTripSearchIntent(normalized)) {
-            return "FUAI hiện chưa tìm thấy tuyến trực tiếp " + snapshot.cityMentions.get(0) + " - " + snapshot.cityMentions.get(1)
-                    + " trong hệ thống. Quý khách muốn thử tuyến khác hoặc để FUAI gợi ý hành trình gần nhất không ạ?";
+        if (snapshot.routeOnly != null && (isRouteAvailabilityIntent(normalized) || isTripSearchIntent(normalized))) {
+            return buildRouteAvailableReply(snapshot.routeOnly);
+        }
+
+        if (snapshot.cityMentions.size() >= 2 && (isRouteAvailabilityIntent(normalized) || isTripSearchIntent(normalized))) {
+            return buildRouteUnavailableReply(snapshot.cityMentions.get(0), snapshot.cityMentions.get(1));
+        }
+
+        if (containsAny(normalized, "tre em", "nguoi lon", "hanh khach")) {
+            return "Hiện tại trẻ em được tính 70% giá vé người lớn và vẫn cần ghế riêng. Nếu cần, mình có thể gợi ý cách chọn số lượng hành khách cho đúng.";
+        }
+
+        if (containsAny(normalized, "thanh toan", "vnpay", "stripe", "qr")) {
+            return "Nếu thanh toán chưa xong thì đơn thường vẫn ở trạng thái chờ thanh toán. Bạn có thể mở lại trang thanh toán để thử lại, hoặc gửi mã vé hay số điện thoại để mình kiểm tra giúp.";
+        }
+
+        if (containsAny(normalized, "thoi tiet", "du lich", "di choi", "o dau dep")) {
+            return "Mình đang hỗ trợ chính về tìm chuyến, tra cứu vé và thanh toán trên FUDA Bus. Nếu muốn, mình vẫn có thể gợi ý vài tuyến du lịch phổ biến cho bạn.";
+        }
+
+        return null;
+    }
+
+    private String buildFallbackReply(String message, SupportSnapshot snapshot) {
+        String normalized = normalizeText(message);
+
+        if (isGreeting(normalized)) {
+            return "Chào bạn, mình là FUAI của FUDA Bus. Bạn muốn tìm chuyến, tra cứu vé hay cần hỗ trợ thanh toán?";
+        }
+
+        if (snapshot.requestedTicketCode != null && snapshot.ticketBooking == null) {
+            return "Mình chưa tìm thấy vé " + snapshot.requestedTicketCode + ". Bạn kiểm tra lại mã vé hoặc gửi số điện thoại đặt vé để mình tìm tiếp nhé.";
+        }
+
+        if (snapshot.ticketBooking != null) {
+            return buildBookingLookupReply(snapshot.ticketBooking);
+        }
+
+        if (!snapshot.phoneBookings.isEmpty()) {
+            StringBuilder builder = new StringBuilder("Mình tìm thấy vài đơn gần nhất theo số điện thoại bạn gửi:\n");
+            for (Booking booking : snapshot.phoneBookings) {
+                builder.append("- ").append(formatBookingSummary(booking)).append("\n");
+            }
+            builder.append("Bạn muốn mình kiểm tra kỹ đơn nào?");
+            return builder.toString().trim();
+        }
+
+        if (snapshot.tripSearch != null) {
+            if (snapshot.tripSearch.trips.isEmpty()) {
+                return "Hiện mình chưa thấy chuyến phù hợp cho tuyến "
+                        + snapshot.tripSearch.route.getOrigin() + " - " + snapshot.tripSearch.route.getDestination()
+                        + " vào ngày " + snapshot.tripSearch.date.format(SEARCH_DATE) + ". Bạn thử đổi ngày hoặc nhắn tuyến khác nhé.";
+            }
+            StringBuilder builder = new StringBuilder("Mình tìm được các chuyến này:\n");
+            for (Trip trip : snapshot.tripSearch.trips) {
+                builder.append("- ").append(formatTripSummary(trip)).append("\n");
+            }
+            builder.append("Nếu muốn, mình lọc tiếp theo giờ đi hoặc mức giá cho bạn.");
+            return builder.toString().trim();
+        }
+
+        if (snapshot.routeOnly != null && (isRouteAvailabilityIntent(normalized) || isTripSearchIntent(normalized))) {
+            return "Có nhé, bên mình đang có tuyến " + snapshot.routeOnly.getOrigin() + " - " + snapshot.routeOnly.getDestination()
+                    + ". Bạn muốn đi ngày nào để mình tìm chuyến phù hợp luôn?";
+        }
+
+        if (snapshot.cityMentions.size() >= 2 && (isRouteAvailabilityIntent(normalized) || isTripSearchIntent(normalized))) {
+            return "Hiện mình chưa thấy tuyến trực tiếp " + snapshot.cityMentions.get(0) + " - " + snapshot.cityMentions.get(1)
+                    + " trong hệ thống. Nếu muốn, mình có thể gợi ý tuyến gần nhất hoặc kiểm tra hành trình khác cho bạn.";
         }
 
         if (snapshot.activeBooking != null && isBookingFollowUpIntent(normalized) && !isTripSearchIntent(normalized)) {
@@ -347,30 +430,34 @@ public class AiAssistantService {
         }
 
         if (containsAny(normalized, "thoi tiet", "du lich", "di choi", "o dau dep")) {
-            return "FUAI hiện hỗ trợ chủ yếu về đặt vé, tra cứu vé và thanh toán trên FUDA Bus. Nếu Quý khách muốn, mình vẫn có thể gợi ý một số tuyến du lịch phổ biến của FUDA Bus.";
+            return "Mình đang hỗ trợ chính về tìm chuyến, tra cứu vé và thanh toán trên FUDA Bus. Nếu muốn, mình vẫn có thể gợi ý vài tuyến du lịch phổ biến cho bạn.";
         }
 
         if (containsAny(normalized, "tre em", "nguoi lon", "hanh khach")) {
-            return "Trong hệ thống hiện tại, trẻ em được tính như một hành khách và cần ghế riêng. Nếu cần, FUAI có thể gợi ý cách chọn số lượng hành khách phù hợp.";
+            return "Hiện tại trẻ em được tính 70% giá vé người lớn và vẫn cần ghế riêng. Nếu cần, mình có thể gợi ý cách chọn số lượng hành khách cho đúng.";
         }
 
         if (containsAny(normalized, "thanh toan", "vnpay", "stripe", "qr")) {
-            return "Nếu thanh toán chưa hoàn tất thì đơn thường vẫn ở trạng thái Pending. Quý khách có thể mở lại trang thanh toán để thử lại. Nếu đã có mã vé hoặc số điện thoại, FUAI có thể kiểm tra ngay giúp mình.";
+            return "Nếu thanh toán chưa xong thì đơn thường vẫn ở trạng thái chờ thanh toán. Bạn có thể mở lại trang thanh toán để thử lại, hoặc gửi mã vé hay số điện thoại để mình kiểm tra giúp.";
         }
 
-        return "FUAI có thể hỗ trợ Quý khách tìm chuyến, tra cứu vé theo mã vé hoặc số điện thoại, và giải đáp thanh toán. Quý khách cứ nhắn kiểu như 'Tìm chuyến Hà Nội đi Đà Nẵng ngày 2026-03-16' hoặc 'Tra cứu vé TKT-ABCD1234' nhé.";
+        return "Mình có thể giúp bạn tìm chuyến, tra cứu vé theo mã vé hoặc số điện thoại, và hỗ trợ thanh toán. Bạn cứ nhắn kiểu như 'Có tuyến Hà Nội đi Đà Nẵng không?', 'Tìm chuyến Hà Nội đi Đà Nẵng ngày 2026-03-16' hoặc 'Tra cứu vé TKT-ABCD1234'.";
     }
 
     private String buildBookingLookupReply(Booking booking) {
         StringBuilder builder = new StringBuilder();
-        builder.append("Mình đã tìm thấy vé ").append(safe(booking.getTicketCode(), "không rõ mã")).append(" của Quý khách.\n");
+        builder.append("Mình đã tìm thấy vé ").append(safe(booking.getTicketCode(), "không rõ mã")).append(".\n");
         builder.append("- Trạng thái: ").append(humanizeStatus(booking.getStatus())).append("\n");
         builder.append("- Hành trình: ").append(formatRouteLabel(booking)).append("\n");
+        String busNumber = extractBusNumber(booking);
+        if (busNumber != null) {
+            builder.append("- Biển số xe: ").append(busNumber).append("\n");
+        }
         builder.append("- Tổng tiền: ").append(maskPrice(booking.getTotalPrice())).append("\n");
         if (booking.getUser() != null && booking.getUser().getPhoneNumber() != null) {
             builder.append("- Số điện thoại: ").append(maskPhone(booking.getUser().getPhoneNumber())).append("\n");
         }
-        builder.append("Nếu cần, Quý khách có thể hỏi tiếp về thanh toán, đổi vé hoặc hoàn vé của đơn này.");
+        builder.append("Nếu cần, bạn có thể hỏi tiếp về thanh toán, đổi vé hoặc hoàn vé của đơn này.");
         return builder.toString().trim();
     }
 
@@ -380,31 +467,31 @@ public class AiAssistantService {
         String status = humanizeStatus(booking.getStatus());
 
         if (containsAny(normalizedMessage, "huong dan", "cach hoan", "lam sao hoan", "hoan tien di", "hoan tien", "hoan ve") && !containsAny(normalizedMessage, "doi")) {
-            return "Với vé " + code + " cho hành trình " + route + ", FUAI gợi ý Quý khách làm theo 3 bước: bước 1 chuẩn bị mã vé và số điện thoại đặt vé, bước 2 gửi yêu cầu hỗ trợ hoàn vé cho bộ phận chăm sóc khách hàng, bước 3 chờ xác nhận xử lý từ hệ thống. Hiện website chưa hỗ trợ tự hoàn vé trực tiếp, nên nếu cần FUAI có thể giúp Quý khách soạn sẵn nội dung yêu cầu hỗ trợ.";
+            return "Với vé " + code + " cho hành trình " + route + ", bạn có thể làm theo 3 bước: chuẩn bị mã vé và số điện thoại đặt vé, gửi yêu cầu hỗ trợ hoàn vé cho bộ phận chăm sóc khách hàng, rồi chờ hệ thống xác nhận xử lý. Website hiện chưa hỗ trợ tự hoàn vé trực tiếp. Nếu muốn, mình có thể giúp bạn soạn sẵn nội dung yêu cầu.";
         }
 
         if (containsAny(normalizedMessage, "hoan", "huy", "doi")) {
             if ("Pending".equalsIgnoreCase(booking.getStatus())) {
-                return "Mình đã kiểm tra vé " + code + " của Quý khách cho hành trình " + route
+                return "Mình đã kiểm tra vé " + code + " cho hành trình " + route
                         + ". Vé này hiện đang ở trạng thái " + status
-                        + ", nên Quý khách có thể mở lại trang thanh toán để hủy đơn ngay trên hệ thống. Nếu cần, FUAI có thể hướng dẫn từng bước.";
+                        + ", nên bạn có thể mở lại trang thanh toán để hủy đơn ngay trên hệ thống. Nếu cần, mình hướng dẫn từng bước luôn.";
             }
-            return "Mình đã kiểm tra vé " + code + " của Quý khách cho hành trình " + route
+            return "Mình đã kiểm tra vé " + code + " cho hành trình " + route
                     + ". Vé này hiện ở trạng thái " + status
-                    + ". Với vé đã thanh toán, hệ thống chưa hỗ trợ tự hoàn vé trực tiếp trên web. Nếu Quý khách muốn, FUAI có thể hướng dẫn gửi yêu cầu hỗ trợ tiếp theo.";
+                    + ". Với vé đã thanh toán, hệ thống chưa hỗ trợ tự hoàn vé trực tiếp trên web. Nếu muốn, mình có thể hướng dẫn bước tiếp theo.";
         }
 
         if (containsAny(normalizedMessage, "cach", "lam sao", "duoc khong", "the nao")) {
             return "Với vé " + code + " cho hành trình " + route
-                    + ", hiện hệ thống chưa hỗ trợ hoàn vé trực tiếp trên web. Cách phù hợp nhất là gửi yêu cầu hỗ trợ để bộ phận chăm sóc khách hàng kiểm tra thêm. Nếu Quý khách muốn, FUAI có thể hướng dẫn ngay bước tiếp theo.";
+                    + ", hiện hệ thống chưa hỗ trợ hoàn vé trực tiếp trên web. Cách phù hợp nhất là gửi yêu cầu hỗ trợ để bộ phận chăm sóc khách hàng kiểm tra thêm. Nếu muốn, mình có thể hướng dẫn ngay bước tiếp theo.";
         }
 
         if (containsAny(normalizedMessage, "thanh toan", "paid", "pending", "trang thai", "da thanh toan", "chua thanh toan")) {
-            return "Vé " + code + " của Quý khách hiện ở trạng thái " + status + " cho hành trình " + route + ". Nếu cần, FUAI có thể hướng dẫn bước tiếp theo phù hợp với trạng thái này.";
+            return "Vé " + code + " hiện ở trạng thái " + status + " cho hành trình " + route + ". Nếu cần, mình có thể hướng dẫn bước tiếp theo phù hợp với trạng thái này.";
         }
 
-        return "Mình vẫn đang theo dõi vé " + code + " của Quý khách cho hành trình " + route
-                + ". Quý khách muốn FUAI hỗ trợ về thanh toán, hoàn vé hay thông tin chuyến đi ạ?";
+        return "Mình vẫn đang theo dõi vé " + code + " cho hành trình " + route
+                + ". Bạn muốn mình hỗ trợ về thanh toán, hoàn vé hay thông tin chuyến đi?";
     }
 
     private void storeHistory(HttpSession session, String userMessage, String assistantMessage) {
@@ -456,6 +543,13 @@ public class AiAssistantService {
         return containsAny(normalized,
                 "tim chuyen", "tim tuyen", "lich trinh", "chuyen nao", "tuyen nao", "dat ve di",
                 "di ha noi", "di da nang", "di da lat", "di kon tum");
+    }
+
+    private boolean isRouteAvailabilityIntent(String normalized) {
+        if (containsAny(normalized, "co tuyen", "co chuyen", "con tuyen", "con chuyen", "co xe", "con xe")) {
+            return true;
+        }
+        return normalized.contains("khong") && containsAny(normalized, "tuyen", "chuyen");
     }
 
     private boolean isBookingFollowUpIntent(String normalized) {
@@ -532,6 +626,10 @@ public class AiAssistantService {
         builder.append("- Mã vé: ").append(safe(booking.getTicketCode(), "Không rõ")).append("\n");
         builder.append("- Trạng thái: ").append(humanizeStatus(booking.getStatus())).append("\n");
         builder.append("- Hành trình: ").append(formatRouteLabel(booking)).append("\n");
+        String busNumber = extractBusNumber(booking);
+        if (busNumber != null) {
+            builder.append("- Biển số xe: ").append(busNumber).append("\n");
+        }
         builder.append("- Tổng tiền: ").append(maskPrice(booking.getTotalPrice())).append("\n");
         if (booking.getUser() != null && booking.getUser().getPhoneNumber() != null) {
             builder.append("- Số điện thoại: ").append(maskPhone(booking.getUser().getPhoneNumber())).append("\n");
@@ -545,6 +643,14 @@ public class AiAssistantService {
             return trip.getRoute().getOrigin() + " -> " + trip.getRoute().getDestination();
         }
         return "Không rõ hành trình";
+    }
+
+    private String extractBusNumber(Booking booking) {
+        if (booking == null || booking.getTrip() == null || booking.getTrip().getBus() == null) {
+            return null;
+        }
+        String busNumber = booking.getTrip().getBus().getBusNumber();
+        return busNumber == null || busNumber.isBlank() ? null : busNumber;
     }
 
     private String humanizeStatus(String status) {
@@ -616,6 +722,16 @@ public class AiAssistantService {
         return normalized;
     }
 
+    private String buildRouteAvailableReply(Route route) {
+        return "Có nhé, bên mình đang có tuyến " + route.getOrigin() + " - " + route.getDestination()
+                + ". Bạn muốn đi ngày nào để mình tìm chuyến phù hợp luôn?";
+    }
+
+    private String buildRouteUnavailableReply(String origin, String destination) {
+        return "Hiện mình chưa thấy tuyến trực tiếp " + origin + " - " + destination
+                + " trong hệ thống. Nếu muốn, mình có thể gợi ý tuyến gần nhất hoặc kiểm tra hành trình khác cho bạn.";
+    }
+
     private static class SupportSnapshot {
         private String context;
         private String requestedTicketCode;
@@ -633,4 +749,16 @@ public class AiAssistantService {
         private LocalDate date;
         private List<Trip> trips = new ArrayList<>();
     }
+
+    private static class CityMention {
+        private final String name;
+        private final int position;
+
+        private CityMention(String name, int position) {
+            this.name = name;
+            this.position = position;
+        }
+    }
 }
+
+

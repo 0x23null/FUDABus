@@ -74,9 +74,9 @@
             <div class="ai-assistant-messages" id="aiAssistantMessages">
                 <div class="ai-message ai-message-assistant">
                     <div class="ai-message-bubble">
-                        <p class="ai-message-text">Xin ch&#224;o, ch&#250;c Qu&#253; kh&#225;ch m&#7897;t ng&#224;y t&#7889;t l&#224;nh! &#10084;&#65039; &#272;&#226;y l&#224; FUAI, tr&#7907; l&#253; &#7843;o c&#7911;a FUDA Bus. Qu&#253; kh&#225;ch mu&#7889;n FUAI h&#7895; tr&#7907; v&#7873; v&#7845;n &#273;&#7873; g&#236; &#7841;?</p>
+                        <p class="ai-message-text">Ch&#224;o b&#7841;n, m&#236;nh l&#224; FUAI c&#7911;a FUDA Bus. B&#7841;n mu&#7889;n t&#236;m chuy&#7871;n, tra c&#7913;u v&#233; hay c&#7847;n h&#7895; tr&#7907; thanh to&#225;n?</p>
                     </div>
-                    <div class="ai-message-meta">FUAI &#8226; AI Agent &#8226; V&#7915;a xong</div>
+                    <div class="ai-message-meta">FUAI &#8226; Tr&#7907; l&#253; &#7843;o &#8226; V&#7915;a xong</div>
                 </div>
             </div>
         </div>
@@ -105,3 +105,4 @@ window.FUDA_AI_CONFIG = {
 };
 </script>
 <script src="${pageContext.request.contextPath}/assets/js/ai-chat.js?v=5"></script>
+

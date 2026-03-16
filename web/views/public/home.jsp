@@ -56,9 +56,9 @@
 
         .hero-card {
             position: relative;
-            overflow: hidden;
+            overflow: visible;
             border-radius: 38px;
-            padding: 44px;
+            padding: 44px 44px 58px;
             background:
                 linear-gradient(138deg, rgba(11, 47, 52, 0.94) 0%, rgba(15, 118, 110, 0.9) 58%, rgba(45, 212, 191, 0.72) 100%),
                 url('${pageContext.request.contextPath}/assets/images/bus_home.png?v=2') center/cover no-repeat;
@@ -165,14 +165,16 @@
         }
 
         .booking-card {
-            align-self: stretch;
+            position: relative;
+            z-index: 2;
+            align-self: start;
             border-radius: 30px;
             background: rgba(255, 255, 255, 0.95);
             color: var(--text-primary);
             padding: 24px;
             border: 1px solid rgba(226, 235, 248, 0.9);
             box-shadow: 0 24px 50px -34px rgba(20, 33, 61, 0.35);
-            min-height: 542px;
+            min-height: 0;
         }
 
         .booking-head {
@@ -323,6 +325,114 @@
             grid-column: 1 / -1;
         }
 
+        .location-field {
+            position: relative;
+            overflow: visible;
+        }
+
+        .location-control {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            min-height: 24px;
+        }
+
+        .location-input {
+            flex: 1 1 auto;
+        }
+
+        .location-clear {
+            width: 28px;
+            height: 28px;
+            border: none;
+            border-radius: 50%;
+            background: #edf3fb;
+            color: #89a0bf;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            opacity: 0;
+            transform: scale(0.82);
+            pointer-events: none;
+            transition: opacity 0.18s ease, transform 0.18s ease, background-color 0.18s ease, color 0.18s ease;
+            flex-shrink: 0;
+        }
+
+        .location-clear:hover {
+            background: #dfeafb;
+            color: var(--primary-dark);
+        }
+
+        .location-clear.is-visible {
+            opacity: 1;
+            transform: scale(1);
+            pointer-events: auto;
+        }
+
+        .location-menu {
+            position: absolute;
+            top: calc(100% + 10px);
+            left: 0;
+            right: 0;
+            padding: 8px;
+            border-radius: 22px;
+            border: 1px solid #dbe6f4;
+            background: rgba(255, 255, 255, 0.98);
+            box-shadow: 0 28px 42px -34px rgba(20, 33, 61, 0.36);
+            backdrop-filter: blur(14px);
+            opacity: 0;
+            visibility: hidden;
+            pointer-events: none;
+            transform: translateY(-8px) scale(0.98);
+            transition: opacity 0.2s ease, transform 0.22s ease, visibility 0s linear 0.22s;
+            z-index: 22;
+        }
+
+        .location-field.is-open {
+            border-color: #b8cfee;
+            box-shadow: 0 20px 32px -28px rgba(37, 99, 235, 0.28);
+        }
+
+        .location-field.is-open .location-menu {
+            opacity: 1;
+            visibility: visible;
+            pointer-events: auto;
+            transform: translateY(0) scale(1);
+            transition: opacity 0.2s ease, transform 0.22s ease;
+        }
+
+        .location-suggestion,
+        .location-empty {
+            width: 100%;
+            border: none;
+            background: transparent;
+            border-radius: 16px;
+            padding: 12px 14px;
+            text-align: left;
+            font: inherit;
+        }
+
+        .location-suggestion {
+            color: var(--text-primary);
+            font-weight: 600;
+            cursor: pointer;
+            transition: background-color 0.18s ease, color 0.18s ease;
+        }
+
+        .location-suggestion:hover,
+        .location-suggestion:focus-visible,
+        .location-suggestion.is-active {
+            outline: none;
+            background: #eff5ff;
+            color: var(--primary-dark);
+        }
+
+        .location-empty {
+            color: var(--text-secondary);
+            line-height: 1.6;
+        }
+
         .swap-button {
             align-self: center;
             width: 42px;
@@ -342,28 +452,140 @@
         }
 
         .passenger-card {
-            display: grid;
-            gap: 10px;
+            position: relative;
             height: auto;
             min-height: 0;
+            overflow: visible;
         }
 
         .field.passenger-card {
             height: auto;
-            min-height: 152px;
+            min-height: 0;
+            padding: 0;
+            border: none;
+            background: transparent;
         }
 
-        .passenger-summary {
+        .passenger-trigger {
+            width: 100%;
+            min-height: 84px;
             display: flex;
             justify-content: space-between;
             align-items: center;
-            gap: 12px;
-            font-weight: 650;
+            gap: 14px;
+            border-radius: 20px;
+            border: 1px solid #dbe6f4;
+            background: #fbfdff;
+            padding: 14px 16px;
+            cursor: pointer;
+            transition: border-color 0.22s ease, box-shadow 0.22s ease, transform 0.18s ease;
+        }
+
+        .passenger-trigger:hover {
+            border-color: #b8cfee;
+            box-shadow: 0 18px 28px -24px rgba(37, 99, 235, 0.28);
+        }
+
+        .passenger-trigger:focus-visible {
+            outline: none;
+            border-color: #8fb1e6;
+            box-shadow: 0 0 0 4px rgba(37, 99, 235, 0.12);
+        }
+
+        .passenger-trigger-main {
+            display: block;
+            text-align: left;
+        }
+
+        .passenger-trigger-label {
+            color: var(--text-soft);
+            font-size: 11px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
+        }
+
+        .passenger-trigger-note {
+            display: none;
+        }
+
+        .passenger-trigger-side {
+            display: inline-flex;
+            align-items: center;
+            justify-content: flex-end;
+            gap: 10px;
+            flex-shrink: 0;
+            min-width: 152px;
+        }
+
+        .passenger-summary-value {
+            color: var(--text-primary);
+            font-size: 16px;
+            font-weight: 600;
+            text-align: right;
+            line-height: 1.35;
+        }
+
+        .passenger-chevron {
+            color: var(--text-soft);
+            font-size: 13px;
+            transition: transform 0.22s ease, color 0.18s ease;
+        }
+
+        .passenger-card.is-open .passenger-trigger {
+            border-color: #b8cfee;
+            box-shadow: 0 20px 32px -28px rgba(37, 99, 235, 0.28);
+        }
+
+        .passenger-card.is-open .passenger-chevron {
+            transform: rotate(180deg);
+            color: var(--primary-color);
+        }
+
+        .passenger-popover {
+            position: absolute;
+            top: calc(100% + 10px);
+            right: 0;
+            width: min(100%, 360px);
+            padding: 16px;
+            border-radius: 22px;
+            border: 1px solid #dbe6f4;
+            background: rgba(255, 255, 255, 0.98);
+            box-shadow: 0 26px 44px -34px rgba(20, 33, 61, 0.34);
+            backdrop-filter: blur(14px);
+            opacity: 0;
+            visibility: hidden;
+            pointer-events: none;
+            transform: translateY(-8px) scale(0.98);
+            transition: opacity 0.2s ease, transform 0.22s ease, visibility 0s linear 0.22s;
+            z-index: 18;
+        }
+
+        .passenger-card.is-open .passenger-popover {
+            opacity: 1;
+            visibility: visible;
+            pointer-events: auto;
+            transform: translateY(0) scale(1);
+            transition: opacity 0.2s ease, transform 0.22s ease;
+        }
+
+        .passenger-popover-head {
+            margin-bottom: 10px;
+        }
+
+        .passenger-popover-head strong {
+            display: block;
+            font-size: 14px;
+            margin-bottom: 0;
+        }
+
+        .passenger-popover-head span {
+            display: none;
         }
 
         .passenger-rows {
             display: grid;
-            gap: 10px;
+            gap: 12px;
         }
 
         .passenger-row {
@@ -377,11 +599,17 @@
             display: block;
             font-size: 14px;
             font-weight: 650;
+            line-height: 1.3;
         }
 
         .passenger-meta span {
             color: var(--text-secondary);
-            font-size: 13px;
+            font-size: 12px;
+            line-height: 1.45;
+        }
+
+        .passenger-helper {
+            display: none;
         }
 
         .counter {
@@ -403,26 +631,78 @@
             font-weight: 800;
             cursor: pointer;
             box-shadow: 0 12px 18px -18px rgba(20, 33, 61, 0.4);
+            transition: transform 0.16s ease, box-shadow 0.18s ease, background-color 0.18s ease, color 0.18s ease, opacity 0.18s ease;
         }
 
-        .counter span {
+        .counter button:hover:not(:disabled) {
+            transform: translateY(-1px);
+            box-shadow: 0 14px 22px -18px rgba(37, 99, 235, 0.48);
+        }
+
+        .counter button:active:not(:disabled) {
+            transform: scale(0.94);
+        }
+
+        .counter button:disabled {
+            background: #f4f7fc;
+            color: #a4b4ca;
+            cursor: not-allowed;
+            box-shadow: none;
+        }
+
+        .counter-value {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
             min-width: 18px;
             text-align: center;
-            font-weight: 650;
+            font-weight: 700;
+        }
+
+        .counter-value.is-updating {
+            animation: counterValuePulse 0.22s ease;
+        }
+
+        .passenger-summary-value {
+            transition: opacity 0.18s ease, transform 0.18s ease;
+        }
+
+        .passenger-summary-value.is-updating {
+            animation: passengerSummaryPulse 0.24s ease;
+        }
+
+        @keyframes counterValuePulse {
+            0% {
+                opacity: 0.45;
+                transform: translateY(var(--counter-shift, 0)) scale(0.94);
+            }
+            100% {
+                opacity: 1;
+                transform: translateY(0) scale(1);
+            }
+        }
+
+        @keyframes passengerSummaryPulse {
+            0% {
+                opacity: 0.4;
+                transform: translateY(4px);
+            }
+            100% {
+                opacity: 1;
+                transform: translateY(0);
+            }
         }
 
         .booking-foot {
             display: flex;
-            justify-content: space-between;
+            justify-content: flex-end;
             gap: 14px;
             align-items: center;
-            margin-top: 18px;
+            margin-top: 12px;
         }
 
         .booking-note {
-            color: var(--text-secondary);
-            font-size: 13px;
-            max-width: 230px;
+            display: none;
         }
 
         .booking-submit {
@@ -602,6 +882,26 @@
                 transform: rotate(270deg);
             }
 
+            .passenger-trigger,
+            .passenger-row {
+                align-items: flex-start;
+            }
+
+            .passenger-trigger {
+                flex-direction: column;
+            }
+
+            .passenger-trigger-side {
+                width: 100%;
+                justify-content: space-between;
+            }
+
+            .passenger-popover {
+                left: 0;
+                right: 0;
+                width: 100%;
+            }
+
             .booking-foot,
             .why-head {
                 flex-direction: column;
@@ -661,8 +961,8 @@
                                 Bus ngay hành trình của bạn
                             </div>
                             <h1 class="hero-title reveal is-visible">Vé xe trong tay <span>Đi ngay bây giờ!</span></h1>
-                            <p class="hero-text">Tra cứu tuyến, chọn ngày đi và số hành khách ngay trên một khung đặt vé duy nhất.</p>
-                            <p class="hero-text">Sơ đồ ghế và bước thanh toán được hiển thị rõ ngay từ đầu để bạn thao tác nhanh hơn.</p>
+                            <p class="hero-text">Tra cứu tuyến, chọn ngày đi và số hành khách ngay trên<br>một khung đặt vé duy nhất.</p>
+                            <p class="hero-text">Dự án Assignment PRJ 301 của Đức Hải, Trùng Khánh,<br>Bảo Hưng, Tấn Phú, Khắc Khoa.</p>
 
                             <div class="hero-stats">
                                 <div class="hero-stat reveal">
@@ -696,16 +996,28 @@
 
                             <div class="booking-grid">
                                 <div class="route-fields">
-                                    <div class="field">
-                                        <label>Điểm đi</label>
-                                        <input type="text" name="origin" list="locationsList" placeholder="Ví dụ: Hà Nội" required>
+                                    <div class="field location-field" id="originField">
+                                        <label for="originInput">Điểm đi</label>
+                                        <div class="location-control">
+                                            <input type="text" name="origin" id="originInput" class="location-input" placeholder="Chọn điểm đi" autocomplete="off" inputmode="search" spellcheck="false" required onfocus="openLocationMenu('origin')" oninput="handleLocationInput('origin')" onkeydown="handleLocationKeydown(event, 'origin')">
+                                            <button type="button" class="location-clear" id="originClearBtn" aria-label="Xóa điểm đi" onclick="clearLocationInput('origin', event)">
+                                                <i class="fas fa-times"></i>
+                                            </button>
+                                        </div>
+                                        <div class="location-menu" id="originMenu" role="listbox" aria-label="Gợi ý điểm đi"></div>
                                     </div>
                                     <button type="button" class="swap-button" onclick="swapLocations()" aria-label="Đổi điểm đi và điểm đến">
                                         <i class="fas fa-arrow-right-arrow-left"></i>
                                     </button>
-                                    <div class="field">
-                                        <label>Điểm đến</label>
-                                        <input type="text" name="destination" list="locationsList" placeholder="Ví dụ: Đà Nẵng" required>
+                                    <div class="field location-field" id="destinationField">
+                                        <label for="destinationInput">Điểm đến</label>
+                                        <div class="location-control">
+                                            <input type="text" name="destination" id="destinationInput" class="location-input" placeholder="Chọn điểm đến" autocomplete="off" inputmode="search" spellcheck="false" required onfocus="openLocationMenu('destination')" oninput="handleLocationInput('destination')" onkeydown="handleLocationKeydown(event, 'destination')">
+                                            <button type="button" class="location-clear" id="destinationClearBtn" aria-label="Xóa điểm đến" onclick="clearLocationInput('destination', event)">
+                                                <i class="fas fa-times"></i>
+                                            </button>
+                                        </div>
+                                        <div class="location-menu" id="destinationMenu" role="listbox" aria-label="Gợi ý điểm đến"></div>
                                     </div>
                                 </div>
 
@@ -723,36 +1035,50 @@
                                     </div>
                                 </div>
 
-                                <div class="field full passenger-card">
-                                    <div class="passenger-summary">
-                                        <span>Hành khách</span>
-                                        <span id="passengerSummary">1 người lớn</span>
-                                    </div>
+                                <div class="field full passenger-card" id="passengerCard">
+                                    <button type="button" class="passenger-trigger" id="passengerTrigger" aria-expanded="false" aria-haspopup="dialog" onclick="togglePassengerPopover()">
+                                        <span class="passenger-trigger-main">
+                                            <span class="passenger-trigger-label">Hành khách</span>
+                                            <span class="passenger-trigger-note">1 ghế cho mỗi hành khách</span>
+                                        </span>
+                                        <span class="passenger-trigger-side">
+                                            <span id="passengerSummary" class="passenger-summary-value">1 người lớn</span>
+                                            <i class="fas fa-chevron-down passenger-chevron"></i>
+                                        </span>
+                                    </button>
 
-                                    <div class="passenger-rows">
-                                        <div class="passenger-row">
-                                            <div class="passenger-meta">
-                                                <strong>Người lớn</strong>
-                                                <span>Từ 12 tuổi trở lên</span>
+                                    <div class="passenger-popover" id="passengerPopover" role="dialog" aria-label="Chọn số lượng hành khách">
+                                        <div class="passenger-popover-head">
+                                            <strong>Chọn số lượng hành khách</strong>
+                                        </div>
+
+                                        <div class="passenger-rows">
+                                            <div class="passenger-row">
+                                                <div class="passenger-meta">
+                                                    <strong>Người lớn</strong>
+                                                    <span>Từ 12 tuổi trở lên</span>
+                                                </div>
+                                                <div class="counter">
+                                                    <button type="button" id="adultDecrementBtn" onclick="changeCount('adult', -1)">-</button>
+                                                    <span id="adultDisplay" class="counter-value">1</span>
+                                                    <button type="button" id="adultIncrementBtn" onclick="changeCount('adult', 1)">+</button>
+                                                </div>
                                             </div>
-                                            <div class="counter">
-                                                <button type="button" onclick="changeCount('adult', -1)">-</button>
-                                                <span id="adultDisplay">1</span>
-                                                <button type="button" onclick="changeCount('adult', 1)">+</button>
+
+                                            <div class="passenger-row">
+                                                <div class="passenger-meta">
+                                                    <strong>Trẻ em</strong>
+                                                    <span>Tính 70% giá vé người lớn</span>
+                                                </div>
+                                                <div class="counter">
+                                                    <button type="button" id="childDecrementBtn" onclick="changeCount('child', -1)">-</button>
+                                                    <span id="childDisplay" class="counter-value">0</span>
+                                                    <button type="button" id="childIncrementBtn" onclick="changeCount('child', 1)">+</button>
+                                                </div>
                                             </div>
                                         </div>
 
-                                        <div class="passenger-row">
-                                            <div class="passenger-meta">
-                                                <strong>Trẻ em</strong>
-                                                <span>Cần đặt ghế riêng</span>
-                                            </div>
-                                            <div class="counter">
-                                                <button type="button" onclick="changeCount('child', -1)">-</button>
-                                                <span id="childDisplay">0</span>
-                                                <button type="button" onclick="changeCount('child', 1)">+</button>
-                                            </div>
-                                        </div>
+
                                     </div>
 
                                     <input type="hidden" name="adultCount" id="adultInput" value="1">
@@ -773,8 +1099,8 @@
         <section class="why-section">
             <div class="container">
                 <div class="why-head reveal">
-                    <h2>Tại sao chọn Vivu?</h2>
-                    <p>Chúng tôi mang đến trải nghiệm tốt nhất cho hành trình của bạn</p>
+                    <h2>Tại sao nên chọn FUDA Bus?</h2>
+                    <p>Trải nghiệm đặt vé được tối ưu để bạn tra cứu nhanh, chọn ghế rõ ràng và thanh toán thuận tiện.</p>
                 </div>
 
                 <div class="why-grid">
@@ -804,26 +1130,26 @@
         </section>
     </main>
 
-    <datalist id="locationsList">
-        <option value="Hà Nội">
-        <option value="Hồ Chí Minh">
-        <option value="Đà Nẵng">
-        <option value="Hải Phòng">
-        <option value="Cần Thơ">
-        <option value="Đà Lạt">
-        <option value="Nha Trang">
-        <option value="Vũng Tàu">
-        <option value="Quy Nhơn">
-        <option value="Phú Quốc">
-        <option value="Huế">
-        <option value="Kon Tum">
-    </datalist>
 
     <jsp:include page="../common/footer.jsp"></jsp:include>
     <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
     <script>
         let departurePicker = null;
         let returnPicker = null;
+        const locations = [
+            'Hà Nội',
+            'Hồ Chí Minh',
+            'Đà Nẵng',
+            'Hải Phòng',
+            'Cần Thơ',
+            'Đà Lạt',
+            'Nha Trang',
+            'Vũng Tàu',
+            'Quy Nhơn',
+            'Phú Quốc',
+            'Huế',
+            'Kon Tum'
+        ];
 
         function toggleReturnDate(show) {
             const returnShell = document.getElementById('returnDateShell');
@@ -848,19 +1174,186 @@
             }
         }
 
+        function normalizeLocationValue(value) {
+            return (value || '')
+                .normalize('NFD')
+                .replace(/[\u0300-\u036f]/g, '')
+                .toLowerCase()
+                .trim();
+        }
+
+        function getLocationRefs(type) {
+            return {
+                field: document.getElementById(type + 'Field'),
+                input: document.getElementById(type + 'Input'),
+                menu: document.getElementById(type + 'Menu'),
+                clearButton: document.getElementById(type + 'ClearBtn')
+            };
+        }
+
+        function updateLocationClearButton(type) {
+            const { input, clearButton } = getLocationRefs(type);
+            if (!input || !clearButton) {
+                return;
+            }
+            clearButton.classList.toggle('is-visible', Boolean(input.value.trim()));
+        }
+
+        function renderLocationMenu(type) {
+            const { input, menu } = getLocationRefs(type);
+            if (!input || !menu) {
+                return;
+            }
+
+            const query = normalizeLocationValue(input.value);
+            const matches = locations.filter((location) => normalizeLocationValue(location).includes(query)).slice(0, 8);
+
+            if (!matches.length) {
+                menu.innerHTML = '<div class="location-empty">Chưa có địa điểm phù hợp. Bạn có thể nhập lại hoặc chọn từ danh sách phổ biến.</div>';
+                return;
+            }
+
+            menu.innerHTML = matches.map((location) => {
+                const activeClass = location === input.value.trim() ? ' is-active' : '';
+                return '<button type="button" class="location-suggestion' + activeClass + '" data-location-value="'
+                    + location + '">' + location + '</button>';
+            }).join('');
+        }
+
+        function closeLocationMenu(type) {
+            const { field } = getLocationRefs(type);
+            if (field) {
+                field.classList.remove('is-open');
+            }
+        }
+
+        function closeAllLocationMenus(exceptType) {
+            ['origin', 'destination'].forEach((type) => {
+                if (type !== exceptType) {
+                    closeLocationMenu(type);
+                }
+            });
+        }
+
+        function openLocationMenu(type) {
+            const { field } = getLocationRefs(type);
+            if (!field) {
+                return;
+            }
+            closeAllLocationMenus(type);
+            renderLocationMenu(type);
+            field.classList.add('is-open');
+        }
+
+        function selectLocation(type, value) {
+            const { input } = getLocationRefs(type);
+            if (!input) {
+                return;
+            }
+            input.value = value;
+            updateLocationClearButton(type);
+            renderLocationMenu(type);
+            closeLocationMenu(type);
+        }
+
+        function clearLocationInput(type, event) {
+            if (event) {
+                event.preventDefault();
+                event.stopPropagation();
+            }
+            const { input } = getLocationRefs(type);
+            if (!input) {
+                return;
+            }
+            input.value = '';
+            updateLocationClearButton(type);
+            openLocationMenu(type);
+            input.focus();
+        }
+
+        function handleLocationInput(type) {
+            updateLocationClearButton(type);
+            openLocationMenu(type);
+        }
+
+        function handleLocationKeydown(event, type) {
+            if (event.key === 'Escape') {
+                closeLocationMenu(type);
+                return;
+            }
+            if (event.key === 'Enter') {
+                const { menu } = getLocationRefs(type);
+                const firstSuggestion = menu ? menu.querySelector('[data-location-value]') : null;
+                if (firstSuggestion) {
+                    event.preventDefault();
+                    selectLocation(type, firstSuggestion.dataset.locationValue);
+                }
+            }
+        }
+
         function swapLocations() {
-            const origin = document.querySelector('input[name="origin"]');
-            const destination = document.querySelector('input[name="destination"]');
+            const origin = document.getElementById('originInput');
+            const destination = document.getElementById('destinationInput');
             const temp = origin.value;
             origin.value = destination.value;
             destination.value = temp;
+            updateLocationClearButton('origin');
+            updateLocationClearButton('destination');
+            closeAllLocationMenus();
+        }
+
+        function togglePassengerPopover(forceState) {
+            const card = document.getElementById('passengerCard');
+            const trigger = document.getElementById('passengerTrigger');
+            if (!card || !trigger) {
+                return;
+            }
+
+            const nextState = typeof forceState === 'boolean'
+                ? forceState
+                : !card.classList.contains('is-open');
+
+            card.classList.toggle('is-open', nextState);
+            trigger.setAttribute('aria-expanded', String(nextState));
+        }
+
+        function animateCounterValue(element, delta) {
+            element.classList.remove('is-updating');
+            element.style.setProperty('--counter-shift', delta > 0 ? '6px' : '-6px');
+            void element.offsetWidth;
+            element.classList.add('is-updating');
+        }
+
+        function animatePassengerSummary(text) {
+            const summary = document.getElementById('passengerSummary');
+            if (summary.innerText === text) {
+                return;
+            }
+            summary.classList.remove('is-updating');
+            summary.innerText = text;
+            void summary.offsetWidth;
+            summary.classList.add('is-updating');
+        }
+
+        function updateCounterButtons(type, value) {
+            const min = type === 'adult' ? 1 : 0;
+            const decrementButton = document.getElementById(type + 'DecrementBtn');
+            const incrementButton = document.getElementById(type + 'IncrementBtn');
+
+            if (decrementButton) {
+                decrementButton.disabled = value <= min;
+            }
+            if (incrementButton) {
+                incrementButton.disabled = value >= 6;
+            }
         }
 
         function changeCount(type, delta) {
             const input = document.getElementById(type + 'Input');
             const display = document.getElementById(type + 'Display');
             const min = type === 'adult' ? 1 : 0;
-            let value = parseInt(input.value || '0', 10) + delta;
+            const currentValue = parseInt(input.value || '0', 10);
+            let value = currentValue + delta;
 
             if (value < min) {
                 value = min;
@@ -868,9 +1361,14 @@
             if (value > 6) {
                 value = 6;
             }
+            if (value === currentValue) {
+                updateCounterButtons(type, value);
+                return;
+            }
 
             input.value = value;
             display.innerText = value;
+            animateCounterValue(display, delta);
             updatePassengerSummary();
         }
 
@@ -886,7 +1384,9 @@
                 parts.push(child + ' trẻ em');
             }
 
-            document.getElementById('passengerSummary').innerText = parts.join(', ');
+            animatePassengerSummary(parts.join(', '));
+            updateCounterButtons('adult', adult);
+            updateCounterButtons('child', child);
         }
 
         function initDatePickers() {
@@ -915,6 +1415,40 @@
         document.addEventListener('DOMContentLoaded', () => {
             updatePassengerSummary();
             initDatePickers();
+            updateLocationClearButton('origin');
+            updateLocationClearButton('destination');
+
+            ['origin', 'destination'].forEach((type) => {
+                const { menu } = getLocationRefs(type);
+                if (!menu) {
+                    return;
+                }
+                menu.addEventListener('click', (event) => {
+                    const option = event.target.closest('[data-location-value]');
+                    if (!option) {
+                        return;
+                    }
+                    selectLocation(type, option.dataset.locationValue);
+                });
+            });
+
+            document.addEventListener('click', (event) => {
+                const passengerCard = document.getElementById('passengerCard');
+                if (!passengerCard || !passengerCard.contains(event.target)) {
+                    togglePassengerPopover(false);
+                }
+
+                if (!event.target.closest('.location-field')) {
+                    closeAllLocationMenus();
+                }
+            });
+
+            document.addEventListener('keydown', (event) => {
+                if (event.key === 'Escape') {
+                    togglePassengerPopover(false);
+                    closeAllLocationMenus();
+                }
+            });
         });
     </script>
 </body>

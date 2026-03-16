@@ -114,7 +114,12 @@
                                         <span class="table-title"><fmt:formatNumber value="${t.price}" type="number" maxFractionDigits="0" /> đ</span>
                                     </td>
                                     <td>
-                                        <span class="status-badge ${t.status == 'Scheduled' ? 'status-scheduled' : 'status-pending'}">${t.status}</span>
+                                        <span class="status-badge ${t.status == 'Scheduled' ? 'status-scheduled' : 'status-pending'}">
+                                            <c:choose>
+                                                <c:when test="${t.status == 'Scheduled'}">Đã lên lịch</c:when>
+                                                <c:otherwise>Đang cập nhật</c:otherwise>
+                                            </c:choose>
+                                        </span>
                                     </td>
                                     <td>
                                         <a href="${pageContext.request.contextPath}/admin/trip/delete?id=${t.tripID}"

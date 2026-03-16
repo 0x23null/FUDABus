@@ -10,6 +10,13 @@
 <project name="BusTicketDev" default="default" basedir=".">
     <description>Builds, tests, and runs the project BusTicketDev.</description>
     <import file="nbproject/build-impl.xml"/>
+    <available file="${basedir}/conf/local-secrets.properties" property="local.secrets.present"/>
+    <target name="-post-compile" if="local.secrets.present">
+        <mkdir dir="${build.classes.dir}"/>
+        <copy file="${basedir}/conf/local-secrets.properties"
+              tofile="${build.classes.dir}/local-secrets.properties"
+              overwrite="true"/>
+    </target>
     <!--
 
     There exist several targets which are by default empty and which can be 

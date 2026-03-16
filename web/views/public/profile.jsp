@@ -439,8 +439,8 @@
                     <c:choose>
                         <c:when test="${not empty sessionScope.user.googleID}">
                             <div class="disabled-panel">
-                                Tài khoản này đang đăng nhập bằng Google nên hiện chưa hỗ trợ đổi mật khẩu trực tiếp trong hệ thống nội bộ.
-                                Nếu sau này bạn muốn tách flow này riêng, mình có thể làm thêm bước đặt mật khẩu lần đầu cho tài khoản Google.
+                                Tài khoản này đang đăng nhập bằng Google nên hiện chưa hỗ trợ đổi mật khẩu trực tiếp trên hệ thống.
+                                Nếu cần sử dụng mật khẩu riêng cho tài khoản này, vui lòng liên hệ quản trị viên để được hướng dẫn cấu hình phù hợp.
                             </div>
                         </c:when>
                         <c:otherwise>

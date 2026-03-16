@@ -190,7 +190,7 @@
     <div class="page-wrap">
         <div class="success-box">
             <div class="success-badge">&#10003;</div>
-            <h1>Mua vé xe thành công</h1>
+            <h1>Đặt vé thành công</h1>
             <p>Vé của bạn đã sẵn sàng. Bạn có thể tải PDF, in vé hoặc dùng mã QR khi lên xe.</p>
         </div>
 
@@ -211,7 +211,13 @@
                     </div>
                     <div class="info-item">
                         <small>Trạng thái</small>
-                        <strong>${booking.status}</strong>
+                        <strong>
+                            <c:choose>
+                                <c:when test="${booking.status == 'Paid'}">Đã thanh toán</c:when>
+                                <c:when test="${booking.status == 'Cancelled'}">Đã hủy</c:when>
+                                <c:otherwise>Chờ thanh toán</c:otherwise>
+                            </c:choose>
+                        </strong>
                     </div>
                     <div class="info-item">
                         <small>Điện thoại</small>
@@ -225,6 +231,12 @@
                         <small>Hành khách</small>
                         <strong>${booking.adultCount} người lớn<c:if test="${booking.childCount > 0}">, ${booking.childCount} trẻ em</c:if></strong>
                     </div>
+                    <c:if test="${booking.childCount > 0}">
+                        <div class="info-item">
+                            <small>Giá trẻ em</small>
+                            <strong>70% giá vé người lớn</strong>
+                        </div>
+                    </c:if>
                     <div class="info-item">
                         <small>Ngày đặt</small>
                         <strong><fmt:formatDate value="${booking.bookingDate}" pattern="HH:mm dd/MM/yyyy" /></strong>
@@ -238,29 +250,63 @@
                 <div class="ticket-actions">
                     <button onclick="window.print()" class="btn-secondary">In vé</button>
                     <button onclick="downloadPDF()" class="btn-secondary">Tải PDF</button>
-                    <a href="${pageContext.request.contextPath}/home" class="btn-primary">Đặt chuyến mới</a>
+                    <a href="${pageContext.request.contextPath}/home" class="btn-primary">Tìm chuyến khác</a>
                 </div>
             </div>
 
             <div class="panel">
-                <h2 style="margin-top:0;">Thông tin mua vé</h2>
-                <c:forEach items="${booking.segments}" var="segment">
-                    <div class="segment-item">
-                        <h3>${segment.displayType}</h3>
-                        <div class="segment-meta">
-                            <div><strong>Tuyến:</strong> ${segment.trip.route.origin} - ${segment.trip.route.destination}</div>
-                            <div><strong>Giờ xuất bến:</strong> <fmt:formatDate value="${segment.trip.departureTime}" pattern="HH:mm dd/MM/yyyy" /></div>
-                            <div><strong>Giờ đến dự kiến:</strong> <fmt:formatDate value="${segment.trip.arrivalTime}" pattern="HH:mm dd/MM/yyyy" /></div>
-                            <div><strong>Loại xe:</strong> ${segment.trip.bus.busType}</div>
-                            <div><strong>Số ghế:</strong>
-                                <c:forEach items="${segment.seatNumbers}" var="seat" varStatus="loop">
-                                    ${seat}<c:if test="${!loop.last}">, </c:if>
-                                </c:forEach>
+                <h2 style="margin-top:0;">Chi tiết hành trình</h2>
+                <c:choose>
+                    <c:when test="${not empty booking.segments}">
+                        <c:forEach items="${booking.segments}" var="segment">
+                            <div class="segment-item">
+                                <h3>${segment.displayType}</h3>
+                                <div class="segment-meta">
+                                    <div><strong>Tuyến:</strong> ${segment.trip.route.origin} - ${segment.trip.route.destination}</div>
+                                    <div><strong>Giờ xuất bến:</strong> <fmt:formatDate value="${segment.trip.departureTime}" pattern="HH:mm dd/MM/yyyy" /></div>
+                                    <div><strong>Giờ đến dự kiến:</strong> <fmt:formatDate value="${segment.trip.arrivalTime}" pattern="HH:mm dd/MM/yyyy" /></div>
+                                    <div><strong>Loại xe:</strong>
+                                        <c:choose>
+                                            <c:when test="${segment.trip.bus.busType == 'Sleeper'}">Giường nằm</c:when>
+                                            <c:when test="${segment.trip.bus.busType == 'Seater'}">Ghế ngồi</c:when>
+                                            <c:otherwise>${segment.trip.bus.busType}</c:otherwise>
+                                        </c:choose>
+                                    </div>
+                                    <div><strong>Biển số xe:</strong> ${segment.trip.bus.busNumber}</div>
+                                    <div><strong>Số ghế:</strong>
+                                        <c:forEach items="${segment.seatNumbers}" var="seat" varStatus="loop">
+                                            ${seat}<c:if test="${!loop.last}">, </c:if>
+                                        </c:forEach>
+                                    </div>
+                                    <div><strong>Giá chặng:</strong> <span class="price-emphasis"><fmt:formatNumber value="${segment.totalPrice}" type="number" maxFractionDigits="0" />đ</span></div>
+                                </div>
                             </div>
-                            <div><strong>Giá chặng:</strong> <span class="price-emphasis"><fmt:formatNumber value="${segment.segmentPrice * booking.totalPassengerCount}" type="number" maxFractionDigits="0" />đ</span></div>
+                        </c:forEach>
+                    </c:when>
+                    <c:otherwise>
+                        <div class="segment-item">
+                            <h3>Chuyến đi</h3>
+                            <div class="segment-meta">
+                                <div><strong>Tuyến:</strong> ${booking.trip.route.origin} - ${booking.trip.route.destination}</div>
+                                <div><strong>Giờ xuất bến:</strong> <fmt:formatDate value="${booking.trip.departureTime}" pattern="HH:mm dd/MM/yyyy" /></div>
+                                <div><strong>Giờ đến dự kiến:</strong> <fmt:formatDate value="${booking.trip.arrivalTime}" pattern="HH:mm dd/MM/yyyy" /></div>
+                                <div><strong>Loại xe:</strong>
+                                    <c:choose>
+                                        <c:when test="${booking.trip.bus.busType == 'Sleeper'}">Giường nằm</c:when>
+                                        <c:when test="${booking.trip.bus.busType == 'Seater'}">Ghế ngồi</c:when>
+                                        <c:otherwise>${booking.trip.bus.busType}</c:otherwise>
+                                    </c:choose>
+                                </div>
+                                <div><strong>Biển số xe:</strong> ${booking.trip.bus.busNumber}</div>
+                                <div><strong>Số ghế:</strong>
+                                    <c:forEach items="${booking.bookedSeats}" var="seat" varStatus="loop">
+                                        ${seat}<c:if test="${!loop.last}">, </c:if>
+                                    </c:forEach>
+                                </div>
+                            </div>
                         </div>
-                    </div>
-                </c:forEach>
+                    </c:otherwise>
+                </c:choose>
             </div>
         </div>
     </div>
@@ -278,7 +324,7 @@
             const element = document.getElementById('ticketContent');
             html2pdf().set({
                 margin: 8,
-                filename: 'BusTicket-${booking.ticketCode}.pdf',
+                filename: 've-${booking.ticketCode}.pdf',
                 image: { type: 'jpeg', quality: 0.98 },
                 html2canvas: { scale: 2, useCORS: true },
                 jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
